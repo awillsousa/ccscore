@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Meus diretorios e arquivos
+# a excluir
+#
+notebooks/images/
+
