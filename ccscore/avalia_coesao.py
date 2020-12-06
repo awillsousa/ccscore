@@ -21,9 +21,10 @@ if __name__ == '__main__':
             print("Erro")
 
         # Call cohesion analyzer
-        cohesion_analyzer = CohesionAnalyzer(texto)
+        cohesion_analyzer = CohesionAnalyzer()
 
         # Get the results
+        cohesion_analyzer.analyze(texto)
         cohesion_analyzer.results()
 
     else:
