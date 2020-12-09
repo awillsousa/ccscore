@@ -1,15 +1,21 @@
 
 from dependency import Dependency
+import helper_tools as htools
 
+# Lista das etiquetas dos tipos que irão compor
+# a lista de entidades do Foco Explícito
+# substantivos, pronomes, nomes próprios
+FE_POS_TAGS = ["NOUN", "PRON", "PROPN"] 
 
 class SingleSentence(object):
     """
     Class to store a sentence with linguistic annotations.
     """
-    __slots__ = ['id', 'text', 'anotated','tokens', 'root', 'lower_content_tokens', 'dependencies',
-                 'named_entities', 'acronyms']
+    #__slots__ = ['id', 'text', 'annotated','tokens', 'dependencies', 'root', 'lower_content_tokens', 
+    #             'named_entities', 'dbpedia_mentions_entries', 'dbpedia_mentions', 'acronyms', 'list_fe', 'list_fi',
+    #             'doc']
 
-    def __init__(self, num, sentence_text, anotated_sentence, parser_output=None):
+    def __init__(self, num, sentence_text, annotated_sentence=None, doc=None, parser_output=None):
         """
         Initialize a sentence from the output of one of the supported parsers. 
         It checks for the tokens themselves, pos tags, lemmas
@@ -19,13 +25,23 @@ class SingleSentence(object):
         """        
         self.id = num  
         self.text = sentence_text        
-        self.anotated = anotated_sentence
+        self.annotated = annotated_sentence
         self.tokens = []
         self.dependencies = []
         self.root = None
         self.lower_content_tokens = []   
-        self.named_entities = []     
-        self._extract_dependency_tuples()
+        self.named_entities = []
+        self.dbpedia_mentions_entries = []
+        self.dbpedia_mentions = []
+        self.tokens_dbpedia_metions={}
+        self.tokens_fe_pos_tags = {}
+        self.acronyms = []
+        self.list_fe = []     
+        self.list_fi = []
+        self.doc = doc
+        self.__set_named_entities()
+        self._extract_dependency_tuples()        
+        self.__create_fe()
 
     def __str__(self):
         #return ' '.join(str(t) for t in self.tokens)
@@ -36,30 +52,62 @@ class SingleSentence(object):
         return repr_str
 
 
-    def create_fe(self):
+    def __create_fe(self):
         """
         Create the explicit focus list 
         """
-        pass
+        # Append entities like nouns, proper nouns 
+        # and pronouns
+        
+        for token in self.annotated:
+            if token.pos_ in FE_POS_TAGS:
+                self.tokens_fe_pos_tags[token.text] = token
+                self.list_fe.append(token.text)
 
 
-    def create_fi(self):
+        # Append named entities
+        for ne in self.named_entities:
+            self.list_fe.append(ne.text)
+
+        # Get named entities marked by DBpedia Spotlight
+        entries = htools.get_dbpedia_entries(self.text)        
+        self.dbpedia_mentions_entries = entries            
+        
+        for k,v in self.dbpedia_mentions_entries.items():
+            self.dbpedia_mentions.append(k) 
+            for t in self.annotated:
+                if t.idx == int(v['pos']):
+                    offset = len(v['raw_text'].split())
+                    self.tokens_dbpedia_metions[v['raw_text']] = self.annotated[t.i:t.i+offset]
+
+            self.list_fe.append(v['raw_text'])
+
+        self.list_fe = list(set(self.list_fe)) 
+
+    def create_fe_li(self):
+        """
+        Create an intermediate list of entities related to Explicit Focus (FE) list, using synonyms of 
+        element from FE
+        """
+        
+
+
+
+    def __create_fi(self):
         """
         Create the implicit focus list 
         """
         pass
 
 
-    def set_named_entities(self):
+    def __set_named_entities(self):
         """
         Set named entities of the sentence
         """
         #TODO: Incluir entidades obtidas a partir da DBPedia
-        self.named_entities = []
-        for entity in self.anotated.ents:
-            # each entity is a Span, a sequence of Spacy tokens
-            tokens = [self.tokens[spacy_token.i] for spacy_token in entity]
-            self.named_entities.append(tokens)
+        self.named_entities = []        
+        # each entity is a Span, a sequence of Spacy tokens            
+        self.named_entities.extend(self.annotated.ents)
 
 
     def _extract_dependency_tuples(self):
