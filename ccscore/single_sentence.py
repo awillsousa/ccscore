@@ -33,7 +33,7 @@ class SingleSentence(object):
         self.named_entities = []
         self.dbpedia_mentions_entries = []
         self.dbpedia_mentions = []
-        self.tokens_dbpedia_metions={}
+        self.tokens_dbpedia_metions = {}
         self.tokens_fe_pos_tags = {}
         self.acronyms = []
         self.list_fe = []     
