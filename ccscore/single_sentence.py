@@ -1,5 +1,6 @@
 
 from dependency import Dependency
+from itertools import permutations
 import helper_tools as htools
 
 # Lista das etiquetas dos tipos que irão compor
@@ -23,8 +24,8 @@ class SingleSentence(object):
 
         :param parser_output: if None, an empty Sentence object is created.
         """        
-        self.id = num  
-        self.text = sentence_text        
+        self.id = num
+        self.text = sentence_text 
         self.annotated = annotated_sentence
         self.tokens = []
         self.dependencies = []
@@ -64,7 +65,6 @@ class SingleSentence(object):
                 self.tokens_fe_pos_tags[token.text] = token
                 self.list_fe.append(token.text)
 
-
         # Append named entities
         for ne in self.named_entities:
             self.list_fe.append(ne.text)
@@ -73,7 +73,7 @@ class SingleSentence(object):
         entries = htools.get_dbpedia_entries(self.text)        
         self.dbpedia_mentions_entries = entries            
         
-        for k,v in self.dbpedia_mentions_entries.items():
+        for k, v in self.dbpedia_mentions_entries.items():
             self.dbpedia_mentions.append(k) 
             for t in self.annotated:
                 if t.idx == int(v['pos']):
@@ -82,16 +82,24 @@ class SingleSentence(object):
 
             self.list_fe.append(v['raw_text'])
 
+        # Create the list as a set, excluding repetead elements
         self.list_fe = list(set(self.list_fe)) 
+
+        # Now we need to exclude, elements that are contained in others
+        it_fe_pairs = permutations(self.list_fe, 2)        
+        elems_to_exclude = set([])
+        for a, b in it_fe_pairs:    
+            if len(a.split()) == 1:    
+                if a in b:
+                    elems_to_exclude.add(a)        
+        self.list_fe = list(set(self.list_fe).difference(set(elems_to_exclude)))        
 
     def create_fe_li(self):
         """
-        Create an intermediate list of entities related to Explicit Focus (FE) list, using synonyms of 
-        element from FE
+        Create an intermediate list of entities related to Explicit Focus (FE) list, 
+        using synonyms of element from FE
         """
-        
-
-
+        pass        
 
     def __create_fi(self):
         """
@@ -108,7 +116,6 @@ class SingleSentence(object):
         self.named_entities = []        
         # each entity is a Span, a sequence of Spacy tokens            
         self.named_entities.extend(self.annotated.ents)
-
 
     def _extract_dependency_tuples(self):
         '''

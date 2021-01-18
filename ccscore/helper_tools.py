@@ -3,7 +3,7 @@ import requests
 
 # Endpoint 
 #URL_REST_DBPEDIA = "http://192.168.1.103:2222/rest/annotate"
-URL_REST_DBPEDIA = "http://192.168.100.160:2222/rest/annotate"
+URL_REST_DBPEDIA = "http://192.168.1.104:2222/rest/annotate"
 
 
 def get_dbpedia_entries(text, url=URL_REST_DBPEDIA):
