@@ -1,2 +1,2 @@
 # ccscore
-Avaliador automático de coesão e coerência.
+Avaliador automático de coesão e coerência. 
