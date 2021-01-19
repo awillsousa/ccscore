@@ -132,4 +132,4 @@ dmypy.json
 # a excluir
 #
 notebooks/images/
-
+token.auth_dropshot
