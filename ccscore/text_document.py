@@ -2,7 +2,7 @@ from spacy.tokens.doc import Doc
 from spacy import load
 import split_utils as su
 from single_sentence import SingleSentence
-
+import confapp as config
 
 
 class TextDocument(object):

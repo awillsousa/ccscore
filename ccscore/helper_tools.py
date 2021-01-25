@@ -1,9 +1,8 @@
 import requests
+import confapp as config
 
-
-# Endpoint 
-#URL_REST_DBPEDIA = "http://192.168.1.103:2222/rest/annotate"
-URL_REST_DBPEDIA = "http://192.168.1.104:2222/rest/annotate"
+# Endpoint DBPedia
+URL_REST_DBPEDIA = "http://{}:{}/rest/annotate".format(config.DBPEDIA_IP, config.DBPEDIA_PORT)
 
 
 def get_dbpedia_entries(text, url=URL_REST_DBPEDIA):
@@ -42,5 +41,5 @@ def format_dbpedia_result(result):
                 'types': [a.split('/')[-1] for a in [q.split(':')[-1] for q in ent['@types'].split(',')]],
                 'raw_text': ent['@surfaceForm'].replace("'",''),                
                 'pos': int(ent['@offset'])} for ent in result['Resources'] if '@URI' in ent.keys()} 
-    else:     
-        return {}
+    
+    return {}
