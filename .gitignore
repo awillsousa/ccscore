@@ -133,3 +133,4 @@ dmypy.json
 #
 notebooks/images/
 token.auth_dropshot
+*.conf
