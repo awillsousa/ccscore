@@ -6,3 +6,4 @@ load_dotenv(path.join(path.dirname(__file__), "ccscore.conf"))
 
 DBPEDIA_IP = getenv("DBPEDIA_IP")
 DBPEDIA_PORT = getenv("DBPEDIA_PORT")
+TEP2_PATH = getenv("TEP2_PATH")

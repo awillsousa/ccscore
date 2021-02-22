@@ -34,7 +34,9 @@ def _load_unitex_dictionary():
     with open(config.unitex_dictionary_path, 'rb') as f:
         unitex_dictionary = {}
         for line in f:
+            print(line)
             line = line.decode('utf-8').strip()
+            #line = line.strip()
             # each line is in the format
             # inflected_word,lemma.POS:additional_morphological_metadata
             # the morphological metadata is only available for open class words
@@ -129,3 +131,15 @@ def get_lemma(word, pos):
         return word
         
     return unitex_dictionary[(word, delaf_pos)]
+
+
+def get_word(word):
+    global unitex_dictionary
+    if unitex_dictionary is None:
+        _load_unitex_dictionary()
+    data_word = []
+    for w, tag in unitex_dictionary:
+        if w == word:
+            data_word.append((w, tag))
+
+    return data_word 
