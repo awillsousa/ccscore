@@ -40,7 +40,7 @@ class SingleSentence(object):
         self.tokens_fe_pos_tags = {}
         self.acronyms = []
         self.list_fe = []
-        self.list_fe_li = []
+        self.list_fe_li = {}
         self.list_fi = []
         self.doc = doc
         self.__set_named_entities()
@@ -81,7 +81,8 @@ class SingleSentence(object):
             for t in self.annotated:
                 if t.idx == int(v['pos']):
                     offset = len(v['raw_text'].split())
-                    self.tokens_dbpedia_metions[v['raw_text'].lower()] = self.annotated[t.i:t.i+offset]
+                    self.tokens_dbpedia_metions[
+                        v['raw_text'].lower()] = self.annotated[t.i:t.i+offset]
 
             self.list_fe.append(v['raw_text'].lower())
 
@@ -104,14 +105,23 @@ class SingleSentence(object):
         """
 
         # Wordnet load. It's execute just one time (using a global)
-        own.load_wordnet("./data/own-pt.pickle")
-        fe_li_synms = set([])
+        #own.load_wordnet("./data/own-pt.pickle")
+        # WordNet não será usada aqui
+        
         # Find all synonyms of explicit focus list
         for fe_elem in self.list_fe:
-            
+            fe_li_synms = set([])
+
             # Do not search synonyms for proper names
             if fe_elem in self.tokens_fe_pos_tags.keys() and \
                 self.tokens_fe_pos_tags[fe_elem].pos_ == "PROPN":
+                continue
+
+            # Do not search synonyms for named entities
+            # and dbpedia_mentions
+            #if fe_elem in self.named_entities or \
+            if any(fe_elem.lower() == x.lower() for x in self.dbpedia_mentions) or \
+               any(fe_elem.lower() == x.text.lower() for x in self.named_entities):
                 continue
             
             lemma_fe_elem = None
@@ -119,10 +129,20 @@ class SingleSentence(object):
             if lemma_fe_elem is None:  # Não foi encontrado token equivalente
                 lemma_fe_elem = fe_elem
 
-            fe_li_synms = fe_li_synms.union(own.find_synonyms(lemma_fe_elem))
-            fe_li_synms = fe_li_synms.union(set(htools.dic_tep2.get_sinonimos(lemma_fe_elem)))
+            # fe_li_synms = fe_li_synms.union(own.find_synonyms(lemma_fe_elem))
+            # Do not use synsets here. When comparing semantic tags of elements
+            # of FE_LI we can will use the function are_synonyms.
+            fe_li_synms = set(htools.dic_tep2.get_sinonimos(lemma_fe_elem))
             
-        self.list_fe_li = list(fe_li_synms.union(set(self.list_fe)))
+            if len(fe_li_synms) == 0:
+                continue
+
+            if lemma_fe_elem in self.list_fe_li.keys():
+                self.list_fe_li[lemma_fe_elem] = self.list_fe_li[lemma_fe_elem].union(fe_li_synms)
+            else:
+                self.list_fe_li[lemma_fe_elem] = fe_li_synms
+            
+        # self.list_fe_li = list(fe_li_synms.union(set(self.list_fe)))
 
     def show_list_fe(self):
         for fe_elem in self.list_fe:

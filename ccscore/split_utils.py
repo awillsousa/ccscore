@@ -8,7 +8,8 @@ class JuridicoVars(PunktLanguageVars):
 
 
 punkt_param = PunktParameters()
-punkt_param.abbrev_types = set(pd.read_csv('lista_abreviacoes_lower.csv', header=None)[0].values)
+#punkt_param.abbrev_types = set(pd.read_csv('lista_abreviacoes_lower.csv', header=None)[0].values)
+punkt_param.abbrev_types = set([])
 regex = re.compile('[%s]' % re.escape(string.punctuation))
 substituicoes = {"Dr(a)": "Dr_a_", "Sr(a)": "Sr_a_", "Exmo(a)": "Exmo_a_"}
 substituicoes_rev = {value: key for (key, value) in substituicoes.items()}

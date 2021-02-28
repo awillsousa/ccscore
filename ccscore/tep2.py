@@ -3,6 +3,7 @@ from collections import defaultdict
 import pickle
 import confapp as config
 
+
 class GrupoSinonimo():
 
     def __init__(self):
@@ -38,8 +39,8 @@ class GrupoSinonimo():
         classe = self.data[idx][0]
 
         for palavra in all_sinoms:
-            #print("classe: " + classe + " " + "palavra: " + palavra)
-            self.classes[palavra] = classe        
+            # print("classe: " + classe + " " + "palavra: " + palavra)
+            self.classes[palavra] = classe
 
     def get_classe(self, palavra):
         return self.classes[palavra]

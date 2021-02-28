@@ -3,6 +3,7 @@ from spacy import load
 import split_utils as su
 from single_sentence import SingleSentence
 import confapp as config
+from tep2 import GrupoSinonimo
 
 
 class TextDocument(object):
@@ -39,13 +40,14 @@ class TextDocument(object):
 
     def __set_sentences(self):        
         sentences = su.split_by_sentence(self.text)
-        return [SingleSentence(i, s, self.nlp_processor(s), self) for i,s in enumerate(sentences)]
+        return [SingleSentence(i, s, self.nlp_processor(s), self) 
+                for i, s in enumerate(sentences)]
 
     def __set_sentences2(self):
         sentences = []
         add_asspas = False
         id_sent = 0
-        for i,s in enumerate(self.anotated_doc.sents):
+        for i, s in enumerate(self.anotated_doc.sents):
             if s.text == '"':
                 add_asspas = True
             else:

@@ -1,6 +1,6 @@
 texto = '''Defendida por agentes do mercado financeiro e uma das bandeiras da equipe econômica do governo Jair Bolsonaro, o projeto de autonomia do Banco Central (BC) deve avançar na Câmara só após a reforma tributária andar, no que depender do presidente da Casa, Rodrigo Maia (DEM-RJ). Para ele, o projeto sobre a instituição presidida por Roberto Campos Neto não é urgente no curto prazo.
 
-"Aceito votar autonomia do Banco, aceito, é claro, votar os depósitos voluntários, mas aí temos que organizar melhor a pauta até o fim do ano. É só o governo ter boa vontade na reforma tributária", disse Maia, ao participar de evento organizado pelo Itaú. "A reforma tributária tem importância muito maior que autonomia do Banco Central", comentou.
+Aceito votar autonomia do Banco, aceito, é claro, votar os depósitos voluntários, mas aí temos que organizar melhor a pauta até o fim do ano. É só o governo ter boa vontade na reforma tributária", disse Maia, ao participar de evento organizado pelo Itaú. "A reforma tributária tem importância muito maior que autonomia do Banco Central", comentou.
 
 O projeto de autonomia do BC foi aprovado na terça-feira, 3, pelo Senado e agora precisa do aval dos deputados para virar lei. O texto mantém o controle dos preços como objetivo central, mas inclui ainda duas novas metas acessórias, sem prejuízo à principal: suavizar as flutuações do nível de atividade econômica e fomentar o pleno emprego no País. O governo concordou com a redação da proposta, apesar de o BC ser historicamente contrário a ampliar o escopo da atuação.
 
@@ -16,3 +16,18 @@ Sobre a reforma tributária, Maia deu sinais de que quer aprovar o projeto antes
 
 from text_document import TextDocument
 td = TextDocument(texto)
+
+for i, sent in enumerate(td.sentences):
+    print()
+    print("ID: ", str(i))    
+    print("Texto Original: ", sent.text)    
+    print()    
+    print("Lista de Foco Explícito: ", [s for s in sent.list_fe])    
+    print()
+    print("Lista Intermediária de FE: ", sent.list_fe_li)
+    print()    
+    print("Lista de Entidades Nomeadas: ", sent.named_entities)    
+    print()
+    print("Lista de Menções DBPedia: ", str(sent.dbpedia_mentions))    
+    
+    print("-"*100)
