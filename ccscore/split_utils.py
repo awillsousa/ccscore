@@ -51,7 +51,8 @@ def sanitize_split(texto, quote_chars=None, trechos=None):
     if quote_chars is None:
         quote_chars = ['"', '\'']
     if trechos is None:
-        trechos = [' (...),', ' (...);', ' (...)', '(...)', '[...]', ' ...', '...', '()', '),', ');', ')', ' ,', ' ;',
+        trechos = [' (...),', ' (...);', ' (...)', '(...)', '[...]',
+                   ' ...', '...', '()', '),', ');', ')', ' ,', ' ;',
                    ' -', '•', ',', ';']
     texto = texto.strip()
     for quote_char in quote_chars:

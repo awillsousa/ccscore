@@ -3,6 +3,7 @@ import confapp as config
 from cogroo_interface import Cogroo
 from tep2 import GrupoSinonimo
 from bs4 import BeautifulSoup
+from itertools import tee
 import requests
 import pickle
 import tep2
@@ -64,7 +65,11 @@ def format_dbpedia_result(result):
 
 
 def cogroo_analyze(sentence):
-    cogroo = Cogroo.Instance()
+    try:
+        cogroo = Cogroo.Instance()
+    except Exception as ex:
+        print("Falha ao tentar acessar o servidor CoGroo.")
+        print(ex)
     return cogroo.analyze(sentence)
 
 
@@ -86,4 +91,48 @@ def get_categorias_dbpedia(resource):
         categorias.add(texto)
 
     return categorias
-    
+
+def longest_common_substr(arr):
+
+    # Determine size of the array
+    n = len(arr)
+
+    # Take first word from array
+    # as reference
+    s = arr[0]
+    l = len(s)
+
+    res = ""
+
+    for i in range(l):
+        for j in range(i + 1, l + 1):
+
+            # generating all possible substrings
+            # of our reference string arr[0] i.e s
+            stem = s[i:j]
+            k = 1
+            for k in range(1, n):
+
+                # Check if the generated stem is
+                # common to all words
+                if stem not in arr[k]:
+                    break
+
+            # If current substring is present in
+            # all strings and its length is greater
+            # than current result
+            if (k + 1 == n and len(res) < len(stem)):
+                res = stem
+
+    return res
+
+def pairwise(iterable):
+    '''
+    Receive an iterable and return
+    an list with tuples of this elements
+    is this way
+    s -> (s0,s1), (s1,s2), (s2, s3), ...
+    '''
+    a, b = tee(iterable)    
+    next(b, None)  # next(b) it's Ok to
+    return zip(a, b)

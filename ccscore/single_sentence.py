@@ -4,11 +4,13 @@ from itertools import permutations
 import helper_tools as htools
 from tep2 import GrupoSinonimo
 from infernal import openwordnetpt as own
+from collections import defaultdict
 
 # Lista das etiquetas dos tipos que irão compor
 # a lista de entidades do Foco Explícito
 # substantivos, pronomes, nomes próprios
-FE_POS_TAGS = ["NOUN", "PRON", "PROPN"] 
+# FE_POS_TAGS = ["NOUN", "PRON", "PROPN"]
+FE_POS_TAGS = ["NOUN", "PRON"]
 
 class SingleSentence(object):
     """
@@ -18,7 +20,8 @@ class SingleSentence(object):
     #             'named_entities', 'dbpedia_mentions_entries', 'dbpedia_mentions', 'acronyms', 'list_fe', 'list_fi',
     #             'doc']
 
-    def __init__(self, num, sentence_text, annotated_sentence=None, doc=None, parser_output=None):
+    def __init__(self, num, sentence_text, annotated_sentence=None, doc=None,
+                 parser_output=None, palavras_sentence=None):
         """
         Initialize a sentence from the output of one of the supported parsers. 
         It checks for the tokens themselves, pos tags, lemmas
@@ -29,6 +32,7 @@ class SingleSentence(object):
         self.id = num
         self.text = sentence_text
         self.annotated = annotated_sentence
+        self.palavras_sentence = palavras_sentence
         self.tokens = []
         self.dependencies = []
         self.root = None
@@ -41,20 +45,99 @@ class SingleSentence(object):
         self.acronyms = []
         self.list_fe = []
         self.list_fe_li = {}
-        self.list_fi = []
+        self.list_fi = {}
         self.doc = doc
+        self.__create_aligned_sentences()
         self.__set_named_entities()
         self._extract_dependency_tuples()
         self.__create_fe()
         self.__create_fe_li()
+        self.__create_fi()
 
     def __str__(self):
-        #return ' '.join(str(t) for t in self.tokens)
+        # return ' '.join(str(t) for t in self.tokens)
         return self.text
 
     def __repr__(self):
         repr_str = str(self)
         return repr_str
+
+    def get_palavras_tags(self, idx_token, tags='ALL'):
+        """
+        Retrieve palavras' tags for a token on idx_token 
+        position
+        """
+        l_tokens = [x[1] for x in list(filter(lambda item:
+                                              item[1]['spa_start_idx'] == idx_token,
+                                              self.aligned_tokens.items()))]
+
+        if tags == 'ALL':
+            return [x[0] for y in l_tokens
+                    for z in y['pal_tokens'] for x in z.tags]
+        else:
+            # return [x[0] for y in
+            #        self.aligned_tokens[idx_token]['pal_tokens'] for x in y.tags
+            #        if x[1] == tags]
+
+            return [x[0] for y in l_tokens
+                            for z in y['pal_tokens'] 
+                                for x in z.tags if x[1] == tags]
+
+
+    def __create_aligned_sentences(self):
+        """
+        Create an structure with tokens annotared by palavras
+        and tokens annotated by spacy, aligned. 
+        """
+        aligned_tokens = defaultdict()
+        idx_token = 0
+        pal_idx_token = 0
+        spa_idx_token = 0
+        pal_token_text = ""
+        spa_token_text = ""
+        pal_tokens_list = []
+        spa_tokens_list = []
+        it_t_spa = iter(self.annotated)
+        for t_pal in self.palavras_sentence:   
+            
+            # tokens that has composition, stay together    
+            if any("<sam->" in tag for tag,_ in t_pal.tags):
+                pal_token_text += t_pal.text+" + " 
+                pal_tokens_list.append(t_pal)    
+                continue
+            else:
+                # first token from palavras
+                pal_token_text += t_pal.text
+                pal_tokens_list.append(t_pal)
+
+            # first token from spacy
+            token_spa = next(it_t_spa)
+            spa_token_text += token_spa.text
+            spa_tokens_list.append(token_spa)
+
+            # tokens of proper names are grouped in palavras but,
+            # in spacy not
+            if " " in t_pal.text:
+                for _ in range(len(t_pal.text.split(' '))-1):
+                    token_spa = next(it_t_spa)
+                    spa_token_text += " "+token_spa.text
+                    spa_tokens_list.append(token_spa)
+
+            aligned_tokens[idx_token] = {'text': pal_token_text,
+                                         'pal_tokens': pal_tokens_list,
+                                         'spa_tokens': spa_tokens_list,
+                                         'pal_start_idx': pal_idx_token,
+                                         'spa_start_idx': spa_idx_token
+                                        }
+            idx_token += 1
+            pal_idx_token += len(pal_tokens_list)
+            spa_idx_token += len(spa_tokens_list)
+            pal_token_text = ""
+            spa_token_text = ""
+            pal_tokens_list = []
+            spa_tokens_list = []
+
+        self.aligned_tokens = aligned_tokens
 
     def __create_fe(self):
         """
@@ -65,13 +148,15 @@ class SingleSentence(object):
 
         for token in self.annotated:
             if token.pos_ in FE_POS_TAGS:
-                token_text = token.text.lower()
+                # token_text = token.text.lower()
+                token_text = token.text
                 self.tokens_fe_pos_tags[token_text] = token
                 self.list_fe.append(token_text)
 
         # Append named entities
         for ne in self.named_entities:
-            self.list_fe.append(ne.text.lower())
+            # self.list_fe.append(ne.text.lower())
+            self.list_fe.append(ne.text)
 
         # Get named entities marked by DBpedia Spotlight
         self.dbpedia_mentions_entries = htools.get_dbpedia_entries(self.text)
@@ -82,9 +167,11 @@ class SingleSentence(object):
                 if t.idx == int(v['pos']):
                     offset = len(v['raw_text'].split())
                     self.tokens_dbpedia_metions[
-                        v['raw_text'].lower()] = self.annotated[t.i:t.i+offset]
+                        # v['raw_text'].lower()] = self.annotated[t.i:t.i+offset]
+                        v['raw_text']] = self.annotated[t.i:t.i+offset]
 
-            self.list_fe.append(v['raw_text'].lower())
+            # self.list_fe.append(v['raw_text'].lower())
+            self.list_fe.append(v['raw_text'])
 
         # Create the list as a set, excluding repetead elements
         self.list_fe = list(set(self.list_fe))
@@ -105,7 +192,7 @@ class SingleSentence(object):
         """
 
         # Wordnet load. It's execute just one time (using a global)
-        #own.load_wordnet("./data/own-pt.pickle")
+        # own.load_wordnet("./data/own-pt.pickle")
         # WordNet não será usada aqui
         
         # Find all synonyms of explicit focus list
@@ -114,12 +201,12 @@ class SingleSentence(object):
 
             # Do not search synonyms for proper names
             if fe_elem in self.tokens_fe_pos_tags.keys() and \
-                self.tokens_fe_pos_tags[fe_elem].pos_ == "PROPN":
+               self.tokens_fe_pos_tags[fe_elem].pos_ == "PROPN":
                 continue
 
             # Do not search synonyms for named entities
             # and dbpedia_mentions
-            #if fe_elem in self.named_entities or \
+            # if fe_elem in self.named_entities or \
             if any(fe_elem.lower() == x.lower() for x in self.dbpedia_mentions) or \
                any(fe_elem.lower() == x.text.lower() for x in self.named_entities):
                 continue
@@ -153,16 +240,22 @@ class SingleSentence(object):
         """
         Create the implicit focus list 
         """
-        pass
+        # Append entities like nouns, proper nouns
+        # and pronouns and get their semantic tags
 
+        for idx_token, token in enumerate(self.annotated):
+            if token.pos_ in FE_POS_TAGS:
+                tags = self.get_palavras_tags(idx_token, tags='SEMANTIC')
+                if len(tags) > 0:
+                    self.list_fi[token.text] = tags
 
     def __set_named_entities(self):
         """
         Set named entities of the sentence
         """
-        #TODO: Incluir entidades obtidas a partir da DBPedia
-        self.named_entities = []        
-        # each entity is a Span, a sequence of Spacy tokens            
+        # TODO: Incluir entidades obtidas a partir da DBPedia
+        self.named_entities = []
+        # each entity is a Span, a sequence of Spacy tokens
         self.named_entities.extend(self.annotated.ents)
 
     def _extract_dependency_tuples(self):

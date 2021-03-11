@@ -14,6 +14,8 @@ Como o Broadcast (sistema de notícias em tempo real do Grupo Estado) mostrou na
 
 Sobre a reforma tributária, Maia deu sinais de que quer aprovar o projeto antes de deixar a presidência da Casa e acredita que com acordo pode fazer isso rapidamente.'''
 
+
+'''
 from text_document import TextDocument
 td = TextDocument(texto)
 
@@ -31,3 +33,66 @@ for i, sent in enumerate(td.sentences):
     print("Lista de Menções DBPedia: ", str(sent.dbpedia_mentions))    
     
     print("-"*100)
+'''
+
+def test_text_document(display=True):
+    import helper_palavras as h_pal 
+    from text_document import TextDocument
+
+    original_textfile = "./ccscore/data/texto_exemplo.txt"
+    palavras_textfile = "./ccscore/data/texto_exemplo_anotado.html"
+
+    tp = h_pal.parse_file_toclass(palavras_textfile,
+                                original_textfile)
+
+
+    try:
+        with open(original_textfile, 'r') as f_text:
+                orig_text = "\n".join(f_text.readlines())
+    except IOError:
+        print(f"Erro ao tentar abrir o arquivo {original_text}")
+
+    td = TextDocument(orig_text, tp)
+    
+    if display:
+        for i, sent in enumerate(td.sentences):
+            print()
+            print("ID: ", str(i))    
+            print("Texto Original: ", sent.text)    
+            print()    
+            print("Lista de Foco Explícito: ", [s for s in sent.list_fe])
+            print()
+            print("Lista de Foco Implícito: ", [s for s in sent.list_fi.items()])
+            print()
+            print("Lista Intermediária de FE: ", sent.list_fe_li)
+            print()    
+            print("Lista de Entidades Nomeadas: ", sent.named_entities)
+            print()
+            print("Lista de Menções DBPedia: ", str(sent.dbpedia_mentions))
+            
+            print("-"*100)
+
+    return td
+
+def sentence_pair(td):
+    from sentence_pair import SentencePair
+
+    s1 = td.sentences[0]
+    s2 = td.sentences[1]
+
+    sent_pair = SentencePair(s1, s2)
+
+    print(sent_pair.calc_local_cohesion())
+
+def calculate_local_cohesion(td):
+    return td.calc_local_cohesion()
+
+    
+
+def main():
+    #sentence_pair(test_text_document(display=False))
+    calculate_local_cohesion(test_text_document(display=False))
+
+
+if __name__ == '__main__':
+    main()
