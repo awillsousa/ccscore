@@ -137,3 +137,4 @@ notebooks/images/
 token.auth_dropshot
 *.conf
 ccscore/ccscore.conf
+*.out
