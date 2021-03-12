@@ -1,3 +1,4 @@
+from single_paragraph import SingleParagraph
 from spacy.tokens.doc import Doc
 from spacy import load
 import helper_tools as htools
@@ -13,15 +14,16 @@ class TextDocument(object):
     Class to store a text document
     """
     def __init__(self, text, doc_palavras=None):
-        """        
+        """
         :param text: Text of the document.
-        """        
+        """
         self.text = text
         self.doc_palavras = doc_palavras
         self.nlp_processor = None
         self.is_initilized = False
         self.anotated_doc = None
-        self.sentences = None
+        self.sentences = []
+        self.paragraphs = []
         self.__init_document()
 
     def __init_document(self):
@@ -31,6 +33,7 @@ class TextDocument(object):
                     self.set_nlp_processor()
                 # self.anotated_doc = self.nlp_processor(self.text)
                 self.sentences = self.__set_sentences()
+                self.paragraphs = self.__set_paragraphs()
                 self.is_processed = True
         except Exception as ex:
             print("Error to initialize document.")
@@ -41,7 +44,27 @@ class TextDocument(object):
         model = load('pt_core_news_lg')
         self.nlp_processor = model
 
+    def __set_paragraphs(self):
+        """
+        Set the paragraphs that compose the text document
+        and the sentences that belong to each paragraph
+        """
+        paragraphs = []
+        paragraphs_texts = [p for p in su.split_by_break(self.text) if len(p) > 0]
+        last_pos_sent = 0
+        for p_id, p_text in enumerate(paragraphs_texts):
+            paragraph = SingleParagraph(p_id, p_text, self)
+            for pos_sentence in range(len(su.split_by_sentence(p_text))):
+                paragraph.sentences_id.append(last_pos_sent)
+                last_pos_sent += 1
+            paragraphs.append(paragraph)
+
+        return paragraphs
+
     def __set_sentences(self):
+        """
+        Set the sentences that compose the text document
+        """        
         sentences = su.split_by_sentence(self.text)
         if self.doc_palavras:
             return [SingleSentence(num=i, sentence_text=s,

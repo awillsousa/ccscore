@@ -15,25 +15,7 @@ Como o Broadcast (sistema de notícias em tempo real do Grupo Estado) mostrou na
 Sobre a reforma tributária, Maia deu sinais de que quer aprovar o projeto antes de deixar a presidência da Casa e acredita que com acordo pode fazer isso rapidamente.'''
 
 
-'''
-from text_document import TextDocument
-td = TextDocument(texto)
 
-for i, sent in enumerate(td.sentences):
-    print()
-    print("ID: ", str(i))    
-    print("Texto Original: ", sent.text)    
-    print()    
-    print("Lista de Foco Explícito: ", [s for s in sent.list_fe])    
-    print()
-    print("Lista Intermediária de FE: ", sent.list_fe_li)
-    print()    
-    print("Lista de Entidades Nomeadas: ", sent.named_entities)    
-    print()
-    print("Lista de Menções DBPedia: ", str(sent.dbpedia_mentions))    
-    
-    print("-"*100)
-'''
 
 def test_text_document(display=True):
     import helper_palavras as h_pal 
@@ -87,12 +69,47 @@ def sentence_pair(td):
 def calculate_local_cohesion(td):
     return td.calc_local_cohesion()
 
+def display_text_original(): 
+    original_textfile = "./ccscore/data/texto_exemplo.txt"
+    palavras_textfile = "./ccscore/data/texto_exemplo_anotado.html"
+    
+    try:
+        with open(original_textfile, 'r') as f_text:
+                orig_text = f_text.readlines()                
+    except IOError:
+        print(f"Erro ao tentar abrir o arquivo {original_text}")
+
+    for s in orig_text:
+        print(s.replace('\n',''))
     
 
 def main():
-    #sentence_pair(test_text_document(display=False))
-    calculate_local_cohesion(test_text_document(display=False))
+    sentence_pair(test_text_document(display=False))
+    #calculate_local_cohesion(test_text_document(display=False))
+    #display_text_original()
 
 
 if __name__ == '__main__':
     main()
+
+
+
+'''
+from text_document import TextDocument
+td = TextDocument(texto)
+
+for i, sent in enumerate(td.sentences):
+    print()
+    print("ID: ", str(i))    
+    print("Texto Original: ", sent.text)    
+    print()    
+    print("Lista de Foco Explícito: ", [s for s in sent.list_fe])    
+    print()
+    print("Lista Intermediária de FE: ", sent.list_fe_li)
+    print()    
+    print("Lista de Entidades Nomeadas: ", sent.named_entities)    
+    print()
+    print("Lista de Menções DBPedia: ", str(sent.dbpedia_mentions))    
+    
+    print("-"*100)
+'''
