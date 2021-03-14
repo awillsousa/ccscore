@@ -1,13 +1,12 @@
-from single_paragraph import SingleParagraph
-from spacy.tokens.doc import Doc
 from spacy import load
 import helper_tools as htools
 import split_utils as su
-import confapp as config
+# from tep2 import GrupoSinonimo
 from sentence_pair import SentencePair
 from single_sentence import SingleSentence
-from tep2 import GrupoSinonimo
-
+from single_paragraph import SingleParagraph
+from paragraph_pair import ParagraphPair
+from itertools import combinations
 
 class TextDocument(object):
     """
@@ -25,6 +24,15 @@ class TextDocument(object):
         self.sentences = []
         self.paragraphs = []
         self.__init_document()
+        self.global_cohesion = None
+        self.local_cohesion = None
+        self.index_cohesion = None
+        self.total_ambiguities = None
+        self.total_contradictions = None
+        self.index_imprecision = None
+        self.total_textual_problems = None
+        self.index_form = None
+        
 
     def __init_document(self):
         try:
@@ -35,6 +43,9 @@ class TextDocument(object):
                 self.sentences = self.__set_sentences()
                 self.paragraphs = self.__set_paragraphs()
                 self.is_processed = True
+                self.__calc_local_cohesion()
+                self.__calc_global_cohesion()
+                self.__calc_total_cohesion()
         except Exception as ex:
             print("Error to initialize document.")
             print("Error: ", str(ex))
@@ -53,18 +64,23 @@ class TextDocument(object):
         paragraphs_texts = [p for p in su.split_by_break(self.text) if len(p) > 0]
         last_pos_sent = 0
         for p_id, p_text in enumerate(paragraphs_texts):
-            paragraph = SingleParagraph(p_id, p_text, self)
+            sentences_id = []
             for pos_sentence in range(len(su.split_by_sentence(p_text))):
-                paragraph.sentences_id.append(last_pos_sent)
+                sentences_id.append(last_pos_sent)
                 last_pos_sent += 1
-            paragraphs.append(paragraph)
+
+            paragraphs.append(SingleParagraph(num=p_id,
+                                              paragraph_text=p_text,
+                                              sentences_id=sentences_id,
+                                              doc=self)
+                              )
 
         return paragraphs
 
     def __set_sentences(self):
         """
         Set the sentences that compose the text document
-        """        
+        """
         sentences = su.split_by_sentence(self.text)
         if self.doc_palavras:
             return [SingleSentence(num=i, sentence_text=s,
@@ -82,7 +98,7 @@ class TextDocument(object):
         repr_str = str(self)
         return repr_str
 
-    def calc_local_cohesion(self):
+    def __calc_local_cohesion(self):
         """
         Calculate the local cohesion value
         """
@@ -93,4 +109,34 @@ class TextDocument(object):
 
         self.local_cohesion = sum(local_cohesion_values)
 
+        # return self.local_cohesion
+
+    def __calc_global_cohesion(self):
+        """
+        Calculate the global cohesion value
+        """
+        global_cohesion_values = []
+        for p1, p2 in combinations(self.paragraphs, 2):
+            pair = ParagraphPair(p1, p2)
+            global_cohesion_values.append(pair.calc_global_cohesion())
+
+        self.global_cohesion = sum(global_cohesion_values)
+
+        # return self.global_cohesion
+
+    def __calc_total_cohesion(self):
+        ic = 0
+        ic = self.local_cohesion / (len(self.sentences)-1)
+        ic += self.global_cohesion / sum(range(len(self.paragraphs)-1))
+        ic /= 2
+
+        self.index_cohesion = ic
+
+    def get_sum_local_cohesion(self):
         return self.local_cohesion
+
+    def get_sum_global_cohesion(self):
+        return self.global_cohesion
+
+    def get_total_cohesion(self):
+        return self.total_cohesion
