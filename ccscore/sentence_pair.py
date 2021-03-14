@@ -16,7 +16,7 @@ class SentencePair(object):
     def __init__(self, s1, s2, similarity=None):
         """
         :param s1: the first sentence as a string
-        :param s2: the second sentence as a string                
+        :param s2: the second sentence as a string
         :param similarity: similarity score as a float
         """
         self.s1 = s1
@@ -29,7 +29,7 @@ class SentencePair(object):
         # self.annotated_s1 = None
         # self.annotated_s2 = None
 
-        if isinstance(s1, SingleSentence): 
+        if isinstance(s1, SingleSentence):
             self.s1 = s1
         elif isinstance(s1, str) or s1 is None:
             self.s1 = SingleSentece(s1)
@@ -105,7 +105,7 @@ class SentencePair(object):
 
             if not(common_substr is None) and \
                common_substr[0] == '<':
-                tag = f"{common_substr}>"
+                tag = f"{common_substr.replace('-','')}>"
                 if hpal.is_umbrella(tag):
                     min_fi_elems.add(tag)
 
@@ -113,8 +113,8 @@ class SentencePair(object):
 
     def calc_local_cohesion(self):
         """
-        Analyze explicit and implicit focus relations and 
-        return a value based on combinations of their values. 
+        Analyze explicit and implicit focus relations and
+        return a value based on combinations of their values
         """
         fi1_C_fi2 = len(self.fi_intersection) > 0
         fi1_NC_fi2 = not(fi1_C_fi2)
