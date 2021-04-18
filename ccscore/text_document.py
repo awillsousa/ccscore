@@ -22,8 +22,7 @@ class TextDocument(object):
         self.is_initilized = False
         self.anotated_doc = None
         self.sentences = []
-        self.paragraphs = []
-        self.__init_document()
+        self.paragraphs = []        
         self.global_cohesion = None
         self.local_cohesion = None
         self.index_cohesion = None
@@ -33,6 +32,7 @@ class TextDocument(object):
         self.total_textual_problems = None
         self.index_form = None
         
+        self.__init_document()
 
     def __init_document(self):
         try:
@@ -45,7 +45,7 @@ class TextDocument(object):
                 self.is_processed = True
                 self.__calc_local_cohesion()
                 self.__calc_global_cohesion()
-                self.__calc_total_cohesion()
+                self.__calc_index_cohesion()
         except Exception as ex:
             print("Error to initialize document.")
             print("Error: ", str(ex))
@@ -124,7 +124,7 @@ class TextDocument(object):
 
         # return self.global_cohesion
 
-    def __calc_total_cohesion(self):
+    def __calc_index_cohesion(self):
         ic = 0
         ic = self.local_cohesion / (len(self.sentences)-1)
         ic += self.global_cohesion / sum(range(len(self.paragraphs)-1))
@@ -138,5 +138,5 @@ class TextDocument(object):
     def get_sum_global_cohesion(self):
         return self.global_cohesion
 
-    def get_total_cohesion(self):
-        return self.total_cohesion
+    def get_index_cohesion(self):
+        return self.index_cohesion

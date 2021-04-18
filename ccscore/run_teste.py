@@ -40,7 +40,7 @@ def test_text_document(display=True):
 def paragraph_pair(td, display_sentences=False):
     from paragraph_pair import ParagraphPair
     from itertools import combinations
-    recuo="\t\t"
+    recuo = "\t\t"
     for p1, p2 in combinations(td.paragraphs, 2):
         parag_pair = ParagraphPair(p1, p2)
         print()
@@ -117,6 +117,9 @@ def calc_local_cohesion(td):
 def calc_global_cohesion(td):
     print(f"Total GLOBAL Cohesion: {td.calc_global_cohesion()}")
 
+def calc_index_cohesion(td):
+    print(f"Index Cohesion: {td.get_index_cohesion()}")
+
 def display_text_original():
     original_textfile = "./ccscore/data/texto_exemplo.txt"
 
@@ -132,11 +135,12 @@ def display_text_original():
 
 
 def main():
-    paragraph_pair(test_text_document(display=False), display_sentences=True)
-    # sentence_pair(test_text_document(display=False))
-    calc_local_cohesion(test_text_document(display=False))
-    calc_global_cohesion(test_text_document(display=False))
     # display_text_original()
+    # sentence_pair(test_text_document(display=False))
+    # paragraph_pair(test_text_document(display=False), display_sentences=True)    
+    # calc_local_cohesion(test_text_document(display=False))
+    # calc_global_cohesion(test_text_document(display=False))
+    calc_index_cohesion(test_text_document(display=False))
 
 
 if __name__ == '__main__':

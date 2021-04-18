@@ -1,0 +1,108 @@
+argon2-cffi @ file:///tmp/build/80754af9/argon2-cffi_1596828493937/work
+async-generator @ file:///home/ktietz/src/ci/async_generator_1611927993394/work
+attrs @ file:///tmp/build/80754af9/attrs_1604765588209/work
+backcall==0.2.0
+beautifulsoup4==4.9.3
+bleach @ file:///tmp/build/80754af9/bleach_1611690509631/work
+blis==0.4.1
+brotlipy==0.7.0
+catalogue==1.0.0
+certifi==2020.12.5
+cffi @ file:///tmp/build/80754af9/cffi_1606255081583/work
+chardet @ file:///tmp/build/80754af9/chardet_1607706746162/work
+click @ file:///home/linux1/recipes/ci/click_1610990599742/work
+cogroo-interface==0.3
+cryptography @ file:///tmp/build/80754af9/cryptography_1607635341180/work
+cymem @ file:///tmp/build/80754af9/cymem_1605062280080/work
+decorator==4.4.2
+defusedxml==0.6.0
+entrypoints==0.3
+flake8 @ file:///tmp/build/80754af9/flake8_1601911421857/work
+idna @ file:///home/linux1/recipes/ci/idna_1610986105248/work
+importlib-metadata @ file:///tmp/build/80754af9/importlib-metadata_1602276842396/work
+ipykernel==5.4.3
+ipython==7.19.0
+ipython-genutils==0.2.0
+ipywidgets @ file:///tmp/build/80754af9/ipywidgets_1610481889018/work
+isodate==0.6.0
+jedi==0.18.0
+Jinja2 @ file:///home/linux1/recipes/ci/jinja2_1610990516718/work
+joblib @ file:///tmp/build/80754af9/joblib_1607970656719/work
+jsonschema @ file:///tmp/build/80754af9/jsonschema_1594303806266/work
+jupyter==1.0.0
+jupyter-client==6.1.11
+jupyter-console @ file:///tmp/build/80754af9/jupyter_console_1598884538475/work
+jupyter-core==4.7.0
+jupyterlab-pygments @ file:///tmp/build/80754af9/jupyterlab_pygments_1601490720602/work
+jupyterlab-widgets @ file:///tmp/build/80754af9/jupyterlab_widgets_1609884341231/work
+language-tool-python==2.5.2
+MarkupSafe==1.1.1
+mccabe==0.6.1
+mistune==0.8.4
+mkl-fft==1.2.0
+mkl-random==1.1.1
+mkl-service==2.3.0
+murmurhash @ file:///tmp/build/80754af9/murmurhash_1607456108764/work
+nbclient @ file:///tmp/build/80754af9/nbclient_1602783176460/work
+nbconvert @ file:///tmp/build/80754af9/nbconvert_1601914830498/work
+nbformat @ file:///tmp/build/80754af9/nbformat_1610738111109/work
+nest-asyncio @ file:///tmp/build/80754af9/nest-asyncio_1606153767164/work
+nltk @ file:///tmp/build/80754af9/nltk_1592496090529/work
+notebook @ file:///tmp/build/80754af9/notebook_1611340975709/work
+numpy @ file:///tmp/build/80754af9/numpy_and_numpy_base_1603570489231/work
+packaging @ file:///tmp/build/80754af9/packaging_1611952188834/work
+pandas==1.2.1
+pandocfilters @ file:///tmp/build/80754af9/pandocfilters_1605120460739/work
+parso==0.8.1
+pexpect==4.8.0
+pickleshare==0.7.5
+plac @ file:///tmp/build/80754af9/plac_1594259967336/work
+preshed==3.0.2
+prometheus-client @ file:///tmp/build/80754af9/prometheus_client_1606344362066/work
+prompt-toolkit==3.0.14
+pt-core-news-lg @ https://github.com/explosion/spacy-models/releases/download/pt_core_news_lg-2.3.0/pt_core_news_lg-2.3.0.tar.gz
+ptyprocess==0.7.0
+py-dela==0.2.2
+py4j==0.10.9.1
+pycodestyle==2.6.0
+pycparser @ file:///tmp/build/80754af9/pycparser_1594388511720/work
+pydash==5.0.0
+pyflakes==2.2.0
+Pygments==2.7.4
+pymongo==3.11.3
+pyOpenSSL @ file:///tmp/build/80754af9/pyopenssl_1608057966937/work
+pyparsing @ file:///home/linux1/recipes/ci/pyparsing_1610983426697/work
+pyrsistent @ file:///tmp/build/80754af9/pyrsistent_1600141720057/work
+PySocks @ file:///tmp/build/80754af9/pysocks_1605305779399/work
+python-dateutil==2.8.1
+python-dotenv==0.15.0
+pytz @ file:///tmp/build/80754af9/pytz_1608922264688/work
+pyzmq==22.0.2
+qtconsole @ file:///tmp/build/80754af9/qtconsole_1600870028330/work
+QtPy==1.9.0
+rdflib==5.0.0
+regex @ file:///tmp/build/80754af9/regex_1606772724491/work
+requests @ file:///tmp/build/80754af9/requests_1608241421344/work
+scipy @ file:///tmp/build/80754af9/scipy_1597686649129/work
+Send2Trash @ file:///tmp/build/80754af9/send2trash_1607525499227/work
+sip==4.19.13
+six==1.15.0
+soupsieve==2.1
+spacy @ file:///tmp/build/80754af9/spacy_1608321098157/work
+SPARQLWrapper==1.8.5
+srsly @ file:///tmp/build/80754af9/srsly_1607548537638/work
+terminado==0.9.2
+testpath @ file:///home/ktietz/src/ci/testpath_1611930608132/work
+thinc @ file:///tmp/build/80754af9/thinc_1607710152385/work
+tornado==6.1
+tqdm @ file:///tmp/build/80754af9/tqdm_1611857934208/work
+traitlets==5.0.5
+urllib3 @ file:///tmp/build/80754af9/urllib3_1611694770489/work
+wasabi @ file:///tmp/build/80754af9/wasabi_1611694870118/work
+wcwidth==0.2.5
+webencodings==0.5.1
+widgetsnbextension==3.5.1
+Wikidata==0.7.0
+wikipedia==1.4.0
+zipp @ file:///tmp/build/80754af9/zipp_1604001098328/work
+zss==1.2.0
