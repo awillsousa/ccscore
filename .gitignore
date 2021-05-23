@@ -134,6 +134,7 @@ dmypy.json
 notebooks/redacoes/
 CORP/
 cogroo/
+dicionarios/
 ccscore/data/
 notebooks/images/
 token.auth_dropshot
