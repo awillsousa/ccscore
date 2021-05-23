@@ -132,6 +132,7 @@ dmypy.json
 # a excluir
 #
 notebooks/redacoes/
+CORP/
 ccscore/data/
 notebooks/images/
 token.auth_dropshot
