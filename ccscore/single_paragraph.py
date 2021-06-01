@@ -61,7 +61,7 @@ class SingleParagraph(object):
                 self.list_fe = set.union(*fe_pairs)
 
         elif len(sents) == 1:
-            self.list_fe = sents[0].list_fe
+            self.list_fe = set(sents[0].list_fe)
         else:
             raise ccExcept.EmptyParagraph
 

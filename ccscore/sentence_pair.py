@@ -56,19 +56,21 @@ class SentencePair(object):
         Get the intersection of explicit focus list
         of the pairs' sentences
         """
-        s1_list_fe = self.s1.list_fe
-        s2_list_fe = self.s2.list_fe
-        from_li_le = {}
+        
+        #from_li_le = {}
+        from_li_le = set([])
 
         for elem_s1 in self.s1.list_fe:
             if elem_s1 in self.s1.list_fe_li.keys():
                 for sinon_elem_s1 in self.s1.list_fe_li[elem_s1]:
                     for elem_s2 in self.s2.list_fe:
-                        if sinon_elem_s1 == elem_s2:
-                            tag_elem_s1 = self.s1.list_fi[elem_s1]
-                            tag_sinon_in_s2 = self.s2.list_fi[elem_s2]
+                        if sinon_elem_s1 == elem_s2:                            
+                            tag_elem_s1 = self.s1.list_fi.get(elem_s1)
+                            tag_sinon_in_s2 = self.s2.list_fi.get(elem_s2)
 
-                            if tag_elem_s1 == tag_sinon_in_s2:
+                            if tag_elem_s1 == tag_sinon_in_s2 and\
+                               tag_elem_s1 != None and\
+                               tag_sinon_in_s2 != None:
                                 from_li_le.add(sinon_elem_s1)
 
         return (set(self.s1.list_fe).union(from_li_le)).intersection(set(self.s2.list_fe))

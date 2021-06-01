@@ -5,6 +5,7 @@ import helper_tools as htools
 from tep2 import GrupoSinonimo
 from infernal import openwordnetpt as own
 from collections import defaultdict
+import helper_palavras as h_pal
 
 # Lista das etiquetas dos tipos que irão compor
 # a lista de entidades do Foco Explícito
@@ -62,6 +63,17 @@ class SingleSentence(object):
         repr_str = str(self)
         return repr_str
 
+    def get_token_palavras_tags(self, pal_token, tags='ALL'):
+        """
+        Retrieve palavras' tags for a token on idx_token 
+        position
+        """        
+
+        if tags == 'ALL':
+            return [x[0] for x in pal_token.tags]
+        else:            
+            return [x[0] for x in pal_token.tags if x[1] == tags]
+
     def get_palavras_tags(self, idx_token, tags='ALL'):
         """
         Retrieve palavras' tags for a token on idx_token 
@@ -98,6 +110,80 @@ class SingleSentence(object):
         pal_tokens_list = []
         spa_tokens_list = []
         it_t_spa = iter(self.annotated)
+        it_t_pal = iter(self.palavras_sentence)
+        finalizado = False
+        while not finalizado: 
+            try:       
+                # pega o token do palavras
+                t_pal = next(it_t_pal)
+                
+                # tokens that has composition, stay together
+                # como em + as = nas, em + o = no
+                # O palavras trata cada um separadamente 
+                # Ex.: em 	[em] <cjt-head> <sam-> PRP @<ADVL  #8->1
+                #      as 	[o] <-sam> <artd> DET F P @>N  #9->10                
+                if any("<sam->" in tag for tag,_ in t_pal.tags):
+                   #"-" in t_pal.text:
+                    pal_token_text += t_pal.text+" + " 
+                    pal_tokens_list.append(t_pal)    
+                    continue                
+                elif any("<hyfen>" in tag for tag,_ in t_pal.tags):
+                    pal_token_text += t_pal.text+" + " 
+                    pal_tokens_list.append(t_pal)                    
+                    continue
+                else:
+                    # first token from palavras
+                    pal_token_text += t_pal.text
+                    pal_tokens_list.append(t_pal)
+
+                # first token from spacy
+                token_spa = next(it_t_spa)
+                while h_pal.is_token_punct(token_spa.text):
+                    token_spa = next(it_t_spa)
+                                
+                if "=" in t_pal.text:
+                    spa_token_text += token_spa.text            
+                    spa_tokens_list.append(token_spa)
+
+                    t_num = len(t_pal.text.split('='))
+
+                    for _ in range(t_num-1):                        
+                        token_spa = next(it_t_spa)
+                        spa_token_text += " + "+token_spa.text            
+                        spa_tokens_list.append(token_spa)                    
+                else:
+                    spa_token_text += token_spa.text            
+                    spa_tokens_list.append(token_spa)
+
+                # tokens of proper names are grouped in palavras but,
+                # in spacy not
+                if " " in t_pal.text:
+                    for _ in range(len(t_pal.text.split(' '))-1):
+                        token_spa = next(it_t_spa)
+                        spa_token_text += " "+token_spa.text
+                        spa_tokens_list.append(token_spa)
+
+                aligned_tokens[idx_token] = {'text': pal_token_text,
+                                            'spa_text': spa_token_text,
+                                            'pal_tokens': pal_tokens_list,
+                                            'spa_tokens': spa_tokens_list,
+                                            'pal_start_idx': pal_idx_token,
+                                            'spa_start_idx': spa_idx_token
+                                            }
+                idx_token += 1
+                pal_idx_token += len(pal_tokens_list)
+                spa_idx_token += len(spa_tokens_list)
+                pal_token_text = ""
+                spa_token_text = ""
+                pal_tokens_list = []
+                spa_tokens_list = []
+
+            except StopIteration:
+                finalizado = True
+
+        self.aligned_tokens = aligned_tokens
+
+        '''
         for t_pal in self.palavras_sentence:   
             
             # tokens that has composition, stay together    
@@ -112,8 +198,15 @@ class SingleSentence(object):
 
             # first token from spacy
             token_spa = next(it_t_spa)
-            spa_token_text += token_spa.text
-            spa_tokens_list.append(token_spa)
+            while h_pal.is_token_punct(token_spa.text):
+                token_spa = next(it_t_spa)
+            
+            if "=" in token_spa.text:
+                spa_token_text += token_spa.text            
+                spa_tokens_list.append(token_spa)                
+            else:
+                spa_token_text += token_spa.text            
+                spa_tokens_list.append(token_spa)
 
             # tokens of proper names are grouped in palavras but,
             # in spacy not
@@ -138,6 +231,7 @@ class SingleSentence(object):
             spa_tokens_list = []
 
         self.aligned_tokens = aligned_tokens
+        '''
 
     def __create_fe(self):
         """
@@ -184,6 +278,7 @@ class SingleSentence(object):
                 if a in b:
                     elems_to_exclude.add(a)
         self.list_fe = list(set(self.list_fe).difference(set(elems_to_exclude)))
+
 
     def __create_fe_li(self):
         """
@@ -243,11 +338,23 @@ class SingleSentence(object):
         # Append entities like nouns, proper nouns
         # and pronouns and get their semantic tags
 
+        for aligned_token in self.aligned_tokens.values():
+            if len(aligned_token['spa_tokens']) == 1:
+                spa_token = aligned_token['spa_tokens'][0]    
+                if spa_token.pos_ in FE_POS_TAGS:
+                    tags = []
+                    for pal_token in aligned_token['pal_tokens']:
+                        tags = self.get_token_palavras_tags(pal_token,
+                                                            tags='SEMANTIC')
+                        if len(tags) > 0:
+                            self.list_fi[spa_token.text] = tags
+        '''                    
         for idx_token, token in enumerate(self.annotated):
             if token.pos_ in FE_POS_TAGS:
                 tags = self.get_palavras_tags(idx_token, tags='SEMANTIC')
                 if len(tags) > 0:
                     self.list_fi[token.text] = tags
+        '''
 
     def __set_named_entities(self):
         """

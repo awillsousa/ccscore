@@ -1,5 +1,6 @@
 import re, string, collections
 import pandas as pd
+from itertools import tee
 from nltk.tokenize.punkt import PunktSentenceTokenizer, PunktParameters, PunktLanguageVars
 
 
@@ -16,8 +17,45 @@ substituicoes_rev = {value: key for (key, value) in substituicoes.items()}
 
 
 def sentence_tokenize(sentence_tokenizer, texto):
-    return [multi_replace(sentence, substituicoes_rev, ignore_case=True) for sentence in sentence_tokenizer.tokenize(
-        multi_replace(texto, substituicoes, ignore_case=True))]
+    l_sent_tokenizeds = sentence_tokenizer.tokenize(
+                            multi_replace(texto, 
+                                          substituicoes, 
+                                          ignore_case=True)
+                        )
+    # regex utilizda para detectar quebras de sentenças contendo,
+    # aspas duplas (") órfãs 
+    double_quotes_only = r'^[^\"]*(\"[^\"]*\"[^\"]*)*(\")[^\"]*$'
+    
+    new_l_sent = []
+    # se tiver apenas uma sentença, nem olha dá um desprezo
+    if len(l_sent_tokenizeds) == 1: 
+        
+        new_l_sent = l_sent_tokenizeds
+    else:
+        # se tiver mais de uma, aí tenta reconectar as sentenças
+        # de maneira a manter as aspas duplas na mesma sentença    
+        a,b = tee(l_sent_tokenizeds)
+        next(b)
+        pares = list(zip(a,b))
+        ignore_s1 = False
+        s1 = s2 = None
+        for s1,s2 in pares:        
+            if re.match(double_quotes_only, s1) and \
+            re.match(double_quotes_only, s2):
+                new_l_sent.append(s1+s2)
+                ignore_s1 = True
+            elif ignore_s1:
+                ignore_s1 = False
+                continue
+            else:
+                new_l_sent.append(s1)
+        
+        if len(new_l_sent) < len(l_sent_tokenizeds):
+            new_l_sent.append(s2)
+
+
+
+    return [multi_replace(sentence, substituicoes_rev, ignore_case=True) for sentence in new_l_sent]
 
 
 def multi_replace(string, replacements, ignore_case=False):
@@ -31,11 +69,20 @@ def multi_replace(string, replacements, ignore_case=False):
     :rtype: str the replaced string
     """
     if ignore_case:
-        replacements = dict((pair[0].lower(), pair[1]) for pair in sorted(replacements.items()))
-    rep_sorted = sorted(replacements, key=lambda s: (len(s), s), reverse=True)
+        replacements = dict( ( pair[0].lower(), 
+                               pair[1] ) 
+                               for pair in sorted(replacements.items()))
+
+    rep_sorted = sorted( replacements, 
+                         key=lambda s: (len(s), s), 
+                         reverse=True )
+
     rep_escaped = [re.escape(replacement) for replacement in rep_sorted]
-    pattern = re.compile("|".join(rep_escaped), re.I if ignore_case else 0)
-    return pattern.sub(lambda match: replacements[match.group(0).lower() if ignore_case else match.group(0)], string)
+    pattern = re.compile( "|".join(rep_escaped), re.I if ignore_case else 0 )
+
+    return pattern.sub( lambda match: replacements[match.group(0).lower() 
+                                                   if ignore_case else match.group(0)], 
+                        string)
 
 
 def split_by_break(texto):

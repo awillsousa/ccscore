@@ -1,22 +1,11 @@
+import helper_palavras as h_pal
+from text_document import TextDocument
+import argparse
+import pickle
 
-def test_text_document(display=True):
-    import helper_palavras as h_pal
-    from text_document import TextDocument
+parser = argparse.ArgumentParser()
 
-    original_textfile = "./ccscore/data/texto_exemplo.txt"
-    palavras_textfile = "./ccscore/data/texto_exemplo_anotado.html"
-
-    tp = h_pal.parse_file_toclass(palavras_textfile,
-                                  original_textfile)
-    orig_text = ""
-    try:
-        with open(original_textfile, 'r') as f_text:
-            orig_text = "\n".join(f_text.readlines())
-    except IOError:
-        print(f"Erro ao tentar abrir o arquivo {original_textfile}")
-
-    td = TextDocument(orig_text, tp)
-
+def test_text_document(td, tp, display=True):    
     if display:
         for i, sent in enumerate(td.sentences):
             print()
@@ -86,6 +75,7 @@ def paragraph_pair(td, display_sentences=False):
         print(parag_pair.calc_global_cohesion())
         print("-"*100)
 
+
 def sentence_pair(td):
     from sentence_pair import SentencePair
     from helper_tools import pairwise
@@ -111,14 +101,18 @@ def sentence_pair(td):
         print(sent_pair.calc_local_cohesion())
         print("-"*100)
 
+
 def calc_local_cohesion(td):
     print(f"Total LOCAL Cohesion: {td.calc_local_cohesion()}")
+
 
 def calc_global_cohesion(td):
     print(f"Total GLOBAL Cohesion: {td.calc_global_cohesion()}")
 
+
 def calc_index_cohesion(td):
     print(f"Index Cohesion: {td.get_index_cohesion()}")
+
 
 def display_text_original():
     original_textfile = "./ccscore/data/texto_exemplo.txt"
@@ -134,14 +128,34 @@ def display_text_original():
         print(s.replace('\n', ''))
 
 
-def main():
+def main(num_redacao):
+    PATH_CORPUS = "../ccscore/data/Corpus_Redacoes_Completo.pickle"
+    # Carrega a base de redações
+    try:
+        df_redacao = pickle.load(open(PATH_CORPUS, 'rb'))   
+        redacao = df_redacao.iloc[num_redacao]
+    except IOError:
+        print("Erro ao carregar arquivo")
+    except Exception as e:
+        print(f"Erro: {str(e)}")
+
+    texto_orig = str(redacao['Texto']).replace(u"\u2060","")
+    texto_pal = redacao['Palavras']    
+    tp = h_pal.parse_text_toclass(texto_pal, texto_orig)        
+    td = TextDocument(texto_orig, tp)      
+
     # display_text_original()
     # sentence_pair(test_text_document(display=False))
     # paragraph_pair(test_text_document(display=False), display_sentences=True)    
     # calc_local_cohesion(test_text_document(display=False))
     # calc_global_cohesion(test_text_document(display=False))
-    calc_index_cohesion(test_text_document(display=False))
+    calc_index_cohesion(test_text_document(td, tp, display=True))
 
 
 if __name__ == '__main__':
-    main()
+    
+    parser.add_argument("num_redacao", 
+                        help="Número da redação as ser exibida",
+                        type=int)
+    args = parser.parse_args()    
+    main(args.num_redacao)

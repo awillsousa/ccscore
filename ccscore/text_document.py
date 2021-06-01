@@ -22,7 +22,9 @@ class TextDocument(object):
         self.is_initilized = False
         self.anotated_doc = None
         self.sentences = []
-        self.paragraphs = []        
+        self.paragraphs = []
+        self.local_cohesion_values = []
+        self.global_cohesion_values = []    
         self.global_cohesion = None
         self.local_cohesion = None
         self.index_cohesion = None
@@ -65,7 +67,14 @@ class TextDocument(object):
         last_pos_sent = 0
         for p_id, p_text in enumerate(paragraphs_texts):
             sentences_id = []
-            for pos_sentence in range(len(su.split_by_sentence(p_text))):
+            num_sentences = len(su.split_by_sentence(p_text))
+
+            # BUG do split, quando se passa apenas uma sentença.
+            #if len(p_text) > 0 and\
+            #    num_sentences == 0:
+            #    num_sentences = 1
+
+            for pos_sentence in range(num_sentences):
                 sentences_id.append(last_pos_sent)
                 last_pos_sent += 1
 
@@ -106,11 +115,11 @@ class TextDocument(object):
         for s1, s2 in htools.pairwise(self.sentences):
             pair = SentencePair(s1, s2)
             local_cohesion_values.append(pair.calc_local_cohesion())
-
+        self.local_cohesion_values = local_cohesion_values
         self.local_cohesion = sum(local_cohesion_values)
 
         # return self.local_cohesion
-
+    
     def __calc_global_cohesion(self):
         """
         Calculate the global cohesion value
@@ -120,6 +129,7 @@ class TextDocument(object):
             pair = ParagraphPair(p1, p2)
             global_cohesion_values.append(pair.calc_global_cohesion())
 
+        self.global_cohesion_values = global_cohesion_values
         self.global_cohesion = sum(global_cohesion_values)
 
         # return self.global_cohesion

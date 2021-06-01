@@ -31,6 +31,9 @@ class TokenVISL(object):
     def __str__(self):
         return f"{self.text} {self.tags}"
 
+    def __repr__(self):
+        return f"{self.text}"
+
     def get_tags(self, type_tag=TypeTagset.ALL):
         if type_tag == TypeTagset.ALL:
             return self.tags
@@ -118,8 +121,12 @@ def identify_tag(tag):
 
 MARK_START_SENTENCE = "<ß>"
 MARK_END_SENTENCE = "</ß>"
-# Punctuation that break sentence
+# Punctuation that not break sentence
 PUNCT_CONTIN = [": ", "; "]
+TOKEN_PUNCT = [",", ":", "\"", "?", "!"]
+
+def is_token_punct(t):
+    return t in TOKEN_PUNCT
 
 
 def process_line(linha):
@@ -155,6 +162,7 @@ def process_line(linha):
             tags_linha.append((t, identify_tag(t)))
             
     return (token_1, token_2, tags_linha, ref)
+
 
 def parse_file_toclass(filepath, original_text):
     '''
@@ -205,6 +213,71 @@ def parse_file_toclass(filepath, original_text):
                 sentence_tokens = []
 
     return DocVISL(text_sentences)
+
+def has_mark_end(linha, _MARKS_END_SENTENCE):
+    t0 = linha.split(' ')[0] 
+    return (t0 in _MARKS_END_SENTENCE)
+        
+
+def parse_text_toclass(palavras_text, original_text):
+    '''
+    Parse line by line a file with PALAVRAS
+    tags, stored with tags in text format
+    '''   
+    
+    _MARK_END_SENTENCE = "$."
+    _MARKS_END_SENTENCE = ["$.", "$?"]
+    _MARK_WRONG_DQ = "$\""
+    orig_sentences = []    
+    orig_sentences = su.split_by_sentence(original_text)    
+    dt_lines = []
+    dt_lines = palavras_text.split('\n')
+
+    text_sentences = []
+    sentence_tokens = []
+    idx_sentence = 0
+    count_tokens = 0
+    find_mark_end = False
+    is_end_of_sentence = False
+
+    for linha in dt_lines:
+        if find_mark_end: 
+            if len(linha) == 0: # linha com apenas um \n
+                is_end_of_sentence = True
+            elif has_mark_end(linha, [_MARK_WRONG_DQ]): # $. seguido de $"
+                continue
+            else:
+                find_mark_end = False
+        elif has_mark_end(linha, _MARKS_END_SENTENCE):
+            find_mark_end = True
+        
+        #if _MARK_END_SENTENCE in linha:
+        #    if any(x in linha for x in PUNCT_CONTIN):
+        #        continue
+        if is_end_of_sentence:
+            if len(sentence_tokens) > 0:
+                #idx_sentence = count_sentences
+                text_sentences.append(SentenceVISL(idx_sentence,
+                                                   sentence_tokens,
+                                                   orig_sentences[idx_sentence]))
+                idx_sentence += 1
+                count_tokens = 1
+                sentence_tokens = []
+            
+            is_end_of_sentence = False
+        elif "[" in linha:
+            sentence_tokens.append(TokenVISL(count_tokens, *process_line(linha)))
+            count_tokens += 1
+
+    # Algumas vezes o último token, não é seguido de um \n
+    # ou é seguido por um $"
+    if len(sentence_tokens) > 0:                
+        text_sentences.append(SentenceVISL(idx_sentence,
+                                            sentence_tokens,
+                                            orig_sentences[idx_sentence]))
+
+    return DocVISL(text_sentences)
+
 
 def parse_file(filepath):
     '''
@@ -282,7 +355,8 @@ def parse_text(text):
     text it's a text with tags and some marks, 
     result of PALAVRAS parsing process
     '''
-    
+    _MARK_END_SENTENCE = "$."
+
     dt_lines = text.split("\n")
 
     text_sentences = []
@@ -297,7 +371,7 @@ def parse_text(text):
             sentence.append((count_tokens, *process_line(linha)))
             count_tokens += 1
 
-        if MARK_END_SENTENCE in linha:
+        if _MARK_END_SENTENCE in linha:
             if len(sentence) > 0:            
                 text_sentences.append(tuple([count_sentences, sentence]))        
                 count_sentences += 1
