@@ -7,12 +7,13 @@ from single_sentence import SingleSentence
 from single_paragraph import SingleParagraph
 from paragraph_pair import ParagraphPair
 from itertools import combinations
+from os import system
 
 class TextDocument(object):
     """
     Class to store a text document
     """
-    def __init__(self, text, doc_palavras=None):
+    def __init__(self, text, doc_palavras=None, corref_chains=None):
         """
         :param text: Text of the document.
         """
@@ -33,7 +34,18 @@ class TextDocument(object):
         self.index_imprecision = None
         self.total_textual_problems = None
         self.index_form = None
-        
+
+        if corref_chains is None:
+            self.corref_chains = {}
+        else:
+            self.corref_chains = corref_chains
+
+        #requirements_ok, msg = htools.check_requirements()
+        requirements_ok = True
+        if not requirements_ok:
+            print(msg)
+            system.exit(99)
+
         self.__init_document()
 
     def __init_document(self):
@@ -99,6 +111,17 @@ class TextDocument(object):
         else:
             return [SingleSentence(i, s, self.nlp_processor(s), self)
                     for i, s in enumerate(sentences)]
+
+    def __get_corref_chains(self):
+        """
+        Get the correference chains of text
+        """
+
+        # This way of load the corref chains must be 
+        # change in the future
+        pass
+
+        
 
     def __str__(self):
         return self.text

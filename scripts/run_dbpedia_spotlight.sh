@@ -1,3 +1,7 @@
+ # CCScore requirements
+ # Execute the container for DBpedia Spotlight
+  
+ 
  docker run -tid \
  --restart unless-stopped \
  --name dbpedia-spotlight.pt \

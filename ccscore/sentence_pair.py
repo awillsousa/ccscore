@@ -5,6 +5,7 @@ import helper_tools as htools
 from itertools import product
 from infernal import openwordnetpt as own
 from infernal import ppdb
+import confapp as config
 
 
 content_word_tags = {'NOUN', 'VERB', 'ADJ', 'ADV', 'PNOUN'}
@@ -21,6 +22,7 @@ class SentencePair(object):
         """
         self.s1 = s1
         self.s2 = s2
+        self.common_corref_chains = self.__get_corref_chains()
         self.fe_intersection = self.get_fe_intersection()
         self.fi_intersection = self.get_fi_intersection()
         self.lexical_alignments = None
@@ -32,7 +34,7 @@ class SentencePair(object):
         if isinstance(s1, SingleSentence):
             self.s1 = s1
         elif isinstance(s1, str) or s1 is None:
-            self.s1 = SingleSentece(s1)
+            self.s1 = SingleSentence(s1)
         else:
             print("Tipo de objeto inválido passado para o construtor: {}".format(type(s1)))
             raise(TypeError)
@@ -41,7 +43,7 @@ class SentencePair(object):
             self.s2 = s2
         elif isinstance(s2, str) or \
             s2 is None:
-            self.s2 = SingleSentece(s2)            
+            self.s2 = SingleSentence(s2)            
         else:
             print("Tipo de objeto inválido passado para o construtor: {}".format(type(s2)))
             raise(TypeError)
@@ -49,14 +51,34 @@ class SentencePair(object):
         if similarity is not None:
             self.similarity = similarity
 
-        
+    def __get_corref_chains2(self):
+        """
+        Find the list of correference chains that two sentences figure
+        """
+        common_cc = []
+        s1_id = self.s1.id+1
+        s2_id = self.s2.id+1
+        for id_cadeia, cadeia in self.s1.doc.corref_chains.items():
+            sents_in_cadeia = [int(sn['@sentenca']) for sn in cadeia['sn']]                             
+
+            if s1_id in sents_in_cadeia and\
+               s2_id in sents_in_cadeia:
+                common_cc.append(id_cadeia)
+
+        return common_cc
+
+    def __get_corref_chains(self):
+        """
+        Find the list of correference chains that two sentences figure
+        """
+        return self.s1.corref_chains.intersection(self.s2.corref_chains)
 
     def get_fe_intersection(self):
         """
         Get the intersection of explicit focus list
         of the pairs' sentences
         """
-        
+
         #from_li_le = {}
         from_li_le = set([])
 
@@ -118,9 +140,16 @@ class SentencePair(object):
         Analyze explicit and implicit focus relations and
         return a value based on combinations of their values
         """
-        fi1_C_fi2 = len(self.fi_intersection) > 0
+        fi1_C_fi2 = len(self.fi_intersection) > 0        
         fi1_NC_fi2 = not(fi1_C_fi2)
         fe1_C_fe2 = len(self.fe_intersection) > 0
+
+        # Considera as cadeias de correferência para o 
+        # calculo das intereseções do FE
+        if config.USE_CORREF:
+            if not(fe1_C_fe2):
+                fe1_C_fe2 = len(self.common_corref_chains) > 0
+
         fe1_NC_fe2 = not(fe1_C_fe2)
 
         if fi1_C_fi2 and fe1_C_fe2:

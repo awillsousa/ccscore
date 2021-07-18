@@ -2,8 +2,8 @@
 from dependency import Dependency
 from itertools import permutations
 import helper_tools as htools
-from tep2 import GrupoSinonimo
-from infernal import openwordnetpt as own
+# from tep2 import GrupoSinonimo
+# from infernal import openwordnetpt as own
 from collections import defaultdict
 import helper_palavras as h_pal
 
@@ -16,15 +16,16 @@ FE_POS_TAGS = ["NOUN", "PRON"]
 class SingleSentence(object):
     """
     Class to store a sentence with linguistic annotations.
-    """
-    #__slots__ = ['id', 'text', 'annotated','tokens', 'dependencies', 'root', 'lower_content_tokens', 
-    #             'named_entities', 'dbpedia_mentions_entries', 'dbpedia_mentions', 'acronyms', 'list_fe', 'list_fi',
-    #             'doc']
 
+    #__slots__ = ['id', 'text', 'annotated','tokens', 'dependencies', 'root',
+    #             'lower_content_tokens', 'named_entities', 'dbpedia_mentions_entries',
+    #             'dbpedia_mentions', 'acronyms', 'list_fe', 'list_fi',
+    #             'doc']
+    """
     def __init__(self, num, sentence_text, annotated_sentence=None, doc=None,
                  parser_output=None, palavras_sentence=None):
         """
-        Initialize a sentence from the output of one of the supported parsers. 
+        Initialize a sentence from the output of one of the supported parsers.
         It checks for the tokens themselves, pos tags, lemmas
         and dependency annotations.
 
@@ -48,12 +49,15 @@ class SingleSentence(object):
         self.list_fe_li = {}
         self.list_fi = {}
         self.doc = doc
+        self.corref_chains = set([])
         self.__create_aligned_sentences()
         self.__set_named_entities()
         self._extract_dependency_tuples()
         self.__create_fe()
         self.__create_fe_li()
         self.__create_fi()
+
+        self.__get_corref_chains()
 
     def __str__(self):
         # return ' '.join(str(t) for t in self.tokens)
@@ -63,20 +67,32 @@ class SingleSentence(object):
         repr_str = str(self)
         return repr_str
 
+    def __get_corref_chains(self):
+        s1_id = self.id+1
+        for id_cadeia, cadeia in self.doc.corref_chains.items():
+            '''
+            sents_in_cadeia = [sn['@sentenca'] for sn in cadeia['sn']
+                               if str(sn['@sentenca']) == str(s1_id)]
+            if len(sents_in_cadeia) > 0:
+                self.corref_chains.extend(id_cadeia)
+            '''
+            if any(str(sn['@sentenca']) == str(s1_id) for sn in cadeia['sn']):
+                self.corref_chains.add(id_cadeia)
+
     def get_token_palavras_tags(self, pal_token, tags='ALL'):
         """
-        Retrieve palavras' tags for a token on idx_token 
+        Retrieve palavras' tags for a token on idx_token
         position
-        """        
+        """
 
         if tags == 'ALL':
             return [x[0] for x in pal_token.tags]
-        else:            
+        else:
             return [x[0] for x in pal_token.tags if x[1] == tags]
 
     def get_palavras_tags(self, idx_token, tags='ALL'):
         """
-        Retrieve palavras' tags for a token on idx_token 
+        Retrieve palavras' tags for a token on idx_token
         position
         """
         l_tokens = [x[1] for x in list(filter(lambda item:
@@ -92,9 +108,8 @@ class SingleSentence(object):
             #        if x[1] == tags]
 
             return [x[0] for y in l_tokens
-                            for z in y['pal_tokens'] 
-                                for x in z.tags if x[1] == tags]
-
+                         for z in y['pal_tokens']
+                         for x in z.tags if x[1] == tags]
 
     def __create_aligned_sentences(self):
         """
@@ -112,24 +127,23 @@ class SingleSentence(object):
         it_t_spa = iter(self.annotated)
         it_t_pal = iter(self.palavras_sentence)
         finalizado = False
-        while not finalizado: 
-            try:       
+        while not finalizado:
+            try:
                 # pega o token do palavras
                 t_pal = next(it_t_pal)
-                
+
                 # tokens that has composition, stay together
                 # como em + as = nas, em + o = no
-                # O palavras trata cada um separadamente 
+                # O palavras trata cada um separadamente
                 # Ex.: em 	[em] <cjt-head> <sam-> PRP @<ADVL  #8->1
-                #      as 	[o] <-sam> <artd> DET F P @>N  #9->10                
-                if any("<sam->" in tag for tag,_ in t_pal.tags):
-                   #"-" in t_pal.text:
-                    pal_token_text += t_pal.text+" + " 
-                    pal_tokens_list.append(t_pal)    
-                    continue                
-                elif any("<hyfen>" in tag for tag,_ in t_pal.tags):
-                    pal_token_text += t_pal.text+" + " 
-                    pal_tokens_list.append(t_pal)                    
+                #      as 	[o] <-sam> <artd> DET F P @>N  #9->10
+                if any("<sam->" in tag for tag, _ in t_pal.tags):
+                    pal_token_text += t_pal.text+" + "
+                    pal_tokens_list.append(t_pal)
+                    continue
+                elif any("<hyfen>" in tag for tag, _ in t_pal.tags):
+                    pal_token_text += t_pal.text+" + "
+                    pal_tokens_list.append(t_pal)
                     continue
                 else:
                     # first token from palavras
@@ -140,19 +154,19 @@ class SingleSentence(object):
                 token_spa = next(it_t_spa)
                 while h_pal.is_token_punct(token_spa.text):
                     token_spa = next(it_t_spa)
-                                
+
                 if "=" in t_pal.text:
-                    spa_token_text += token_spa.text            
+                    spa_token_text += token_spa.text
                     spa_tokens_list.append(token_spa)
 
                     t_num = len(t_pal.text.split('='))
 
-                    for _ in range(t_num-1):                        
+                    for _ in range(t_num-1):
                         token_spa = next(it_t_spa)
-                        spa_token_text += " + "+token_spa.text            
-                        spa_tokens_list.append(token_spa)                    
+                        spa_token_text += " + "+token_spa.text
+                        spa_tokens_list.append(token_spa)
                 else:
-                    spa_token_text += token_spa.text            
+                    spa_token_text += token_spa.text
                     spa_tokens_list.append(token_spa)
 
                 # tokens of proper names are grouped in palavras but,
@@ -164,12 +178,11 @@ class SingleSentence(object):
                         spa_tokens_list.append(token_spa)
 
                 aligned_tokens[idx_token] = {'text': pal_token_text,
-                                            'spa_text': spa_token_text,
-                                            'pal_tokens': pal_tokens_list,
-                                            'spa_tokens': spa_tokens_list,
-                                            'pal_start_idx': pal_idx_token,
-                                            'spa_start_idx': spa_idx_token
-                                            }
+                                             'spa_text': spa_token_text,
+                                             'pal_tokens': pal_tokens_list,
+                                             'spa_tokens': spa_tokens_list,
+                                             'pal_start_idx': pal_idx_token,
+                                             'spa_start_idx': spa_idx_token}
                 idx_token += 1
                 pal_idx_token += len(pal_tokens_list)
                 spa_idx_token += len(spa_tokens_list)
@@ -279,7 +292,6 @@ class SingleSentence(object):
                     elems_to_exclude.add(a)
         self.list_fe = list(set(self.list_fe).difference(set(elems_to_exclude)))
 
-
     def __create_fe_li(self):
         """
         Create an intermediate list of entities related to Explicit Focus (FE) list,
@@ -308,7 +320,8 @@ class SingleSentence(object):
             
             lemma_fe_elem = None
             lemma_fe_elem = htools.cogroo_lemmatize(fe_elem)
-            if lemma_fe_elem is None:  # Não foi encontrado token equivalente
+            if lemma_fe_elem is None or\
+               len(lemma_fe_elem.strip()) == 0:  # Não foi encontrado token equivalente
                 lemma_fe_elem = fe_elem
 
             # fe_li_synms = fe_li_synms.union(own.find_synonyms(lemma_fe_elem))
@@ -329,7 +342,6 @@ class SingleSentence(object):
     def show_list_fe(self):
         for fe_elem in self.list_fe:
             print(fe_elem)
-
 
     def __create_fi(self):
         """
@@ -419,7 +431,7 @@ class SingleSentence(object):
                                      if token.lemma not in stopwords]
 
 
-'''    
+'''
     def _read_conll_output(self, conll_output):
         """
         Internal function to load data in conll dependency parse syntax.

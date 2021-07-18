@@ -22,9 +22,12 @@ class SingleParagraph(object):
         self.sentences_id = sentences_id
         self.list_fe = []
         self.list_fi = {}
+        self.corref_chains = set([])
         self.doc = doc
         self.__create_fe()
         self.__create_fi()
+
+        self.__get_corref_chains()
 
     def __str__(self):
         # return ' '.join(str(t) for t in self.tokens)
@@ -94,5 +97,31 @@ class SingleParagraph(object):
             self.list_fi = fi_elems
         elif len(sents) == 1:
             self.list_fi = sents[0].list_fi
+        else:
+            raise ccExcept.EmptyParagraph
+
+    def __get_corref_chains(self):
+        """
+        Create the list of corref_chains that have sentences
+        of this paragraph inside.
+        The Correference Chain list will be:
+        FE = UNION( INTERSECTION(s1.cooref,s2.cooref),INTERSECTION(s1.cooref,s3.cooref),...,INTERSECTION(s1.cooref,sN.cooref),
+                    INTERSECTION(s2.cooref,s3.cooref),INTERSECTION(s3.cooref,s4.cooref),...,INTERSECTION(s2.cooref,sN.cooref),
+                    ..., INTERSECTION(sN-1.cooref,sN.cooref)
+                  )
+        """
+        sents = self.get_sentences()
+        corref_pairs = []
+        if len(sents) > 1:
+            for s1, s2 in combinations(sents, 2):
+                corref_pairs.append(set(SentencePair(s1, s2).common_corref_chains))
+
+            if len(corref_pairs) == 0:
+                self.corref_chains = set([])
+            else:
+                self.corref_chains = set.union(*corref_pairs)
+
+        elif len(sents) == 1:
+            self.corref_chains = set(sents[0].corref_chains)
         else:
             raise ccExcept.EmptyParagraph

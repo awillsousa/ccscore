@@ -1,5 +1,6 @@
 import helper_palavras as h_pal
 from text_document import TextDocument
+import pandas as pd
 import argparse
 import pickle
 
@@ -129,20 +130,24 @@ def display_text_original():
 
 
 def main(num_redacao):
-    PATH_CORPUS = "../ccscore/data/Corpus_Redacoes_Completo.pickle"
+    PATH_CORPUS = "./ccscore/data/Corpus_Redacoes.pickle"
     # Carrega a base de redações
     try:
-        df_redacao = pickle.load(open(PATH_CORPUS, 'rb'))   
+        df_redacao = pickle.load(open(PATH_CORPUS, 'rb'))
         redacao = df_redacao.iloc[num_redacao]
     except IOError:
         print("Erro ao carregar arquivo")
     except Exception as e:
         print(f"Erro: {str(e)}")
+    finally:
+        df_redacao = None
 
-    texto_orig = str(redacao['Texto']).replace(u"\u2060","")
-    texto_pal = redacao['Palavras']    
-    tp = h_pal.parse_text_toclass(texto_pal, texto_orig)        
-    td = TextDocument(texto_orig, tp)      
+    texto_orig = str(redacao.Texto).replace(u"\u2060", "")
+    texto_pal = redacao.Palavras
+    cadeias_corref = redacao.Cadeias
+
+    tp = h_pal.parse_text_toclass(texto_pal, texto_orig)
+    td = TextDocument(texto_orig, tp, corref_chains=cadeias_corref)
 
     # display_text_original()
     # sentence_pair(test_text_document(display=False))
@@ -154,8 +159,8 @@ def main(num_redacao):
 
 if __name__ == '__main__':
     
-    parser.add_argument("num_redacao", 
-                        help="Número da redação as ser exibida",
+    parser.add_argument("--num_redacao", 
+                        help="Número da redação a ser exibida",
                         type=int)
     args = parser.parse_args()    
     main(args.num_redacao)

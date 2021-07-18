@@ -1,5 +1,5 @@
 {
     "git.ignoreLimitWarning": true,
     "python.pythonPath": "/home/willian/miniconda3/envs/ccscore/bin/python",
-    "jupyter.jupyterServerType": "remote"
+    "jupyter.jupyterServerType": "local"
 }

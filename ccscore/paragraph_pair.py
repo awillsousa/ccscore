@@ -1,6 +1,7 @@
 from single_paragraph import SingleParagraph
-import helper_tools as htools
-from itertools import product
+# import helper_tools as htools
+# from itertools import product
+import confapp as config
 
 class ParagraphPair(object):
     """
@@ -28,17 +29,24 @@ class ParagraphPair(object):
         elif isinstance(p2, str) or p2 is None:
             self.p2 = SingleParagraph(p2)
         else:
-            print("Tipo de objeto inválido passado para o construtor: {}".format(type(s2)))
+            print("Tipo de objeto inválido passado para o construtor: {}".format(type(p2)))
             raise(TypeError)
 
+        self.common_corref_chains = self.__get_corref_chains()
         self.fe_intersection = self.get_fe_intersection()
         self.fi_intersection = self.get_fi_intersection()
         self.lexical_alignments = None
         self.entity_alignments = None
         self.ppdb_alignments = None
-        
+
         if similarity is not None:
             self.similarity = similarity
+
+    def __get_corref_chains(self):
+        """
+        Find the list of correference chains that two sentences figure
+        """
+        return self.p1.corref_chains.intersection(self.p2.corref_chains)
 
     def get_fe_intersection(self):
         """
@@ -69,6 +77,13 @@ class ParagraphPair(object):
         fi1_C_fi2 = len(self.fi_intersection) > 0
         fi1_NC_fi2 = not(fi1_C_fi2)
         fe1_C_fe2 = len(self.fe_intersection) > 0
+
+        # Considera as cadeias de correferência para o 
+        # calculo das intereseções do FE
+        if config.USE_CORREF:
+            if not(fe1_C_fe2):
+                fe1_C_fe2 = len(self.common_corref_chains) > 0
+
         fe1_NC_fe2 = not(fe1_C_fe2)
 
         if fi1_C_fi2 and fe1_C_fe2:
