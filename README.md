@@ -1,7 +1,7 @@
 # ccscore
 Avaliador automático de coesão para o Português.
 
-Este repositório traz os códigos utilizados na dissertação Avaliação e Valoração Automática da Coesão de Textos Dissertativos.
+Este repositório traz os códigos utilizados para a implementação baseada no modelo proposta na dissertação Avaliação e Valoração Automática da Coesão de Textos Dissertativos, apresentado por A. Willian Sousa ao Programa de Pós-graduação em Informática(PpgInf) da Universidade Federal do Paraná. (Defesa em 13/08/2021)
 
 Diretórios:
 
