@@ -1,15 +1,16 @@
+# This code was adapted from Pedro 
+
 import re, string, collections
 import pandas as pd
 from itertools import tee
 from nltk.tokenize.punkt import PunktSentenceTokenizer, PunktParameters, PunktLanguageVars
 
 
-class JuridicoVars(PunktLanguageVars):
+class PunctVars(PunktLanguageVars):
     sent_end_chars = ('.', '?', '!', ';')
 
 
 punkt_param = PunktParameters()
-#punkt_param.abbrev_types = set(pd.read_csv('lista_abreviacoes_lower.csv', header=None)[0].values)
 punkt_param.abbrev_types = set([])
 regex = re.compile('[%s]' % re.escape(string.punctuation))
 substituicoes = {"Dr(a)": "Dr_a_", "Sr(a)": "Sr_a_", "Exmo(a)": "Exmo_a_"}
@@ -17,23 +18,33 @@ substituicoes_rev = {value: key for (key, value) in substituicoes.items()}
 
 
 def sentence_tokenize(sentence_tokenizer, texto):
+    '''
+    Custom sentence tokenizer
+
+    :param sentence_tokenizer: Tokenizer to use
+    :param texto: text to be tokenized
+
+    :return List of sentences tokenizeds
+    '''
+
     l_sent_tokenizeds = sentence_tokenizer.tokenize(
                             multi_replace(texto, 
                                           substituicoes, 
                                           ignore_case=True)
                         )
-    # regex utilizda para detectar quebras de sentenças contendo,
-    # aspas duplas (") órfãs 
+
+    # regex used to detected sentence breaks with double (") 
+    # without pair    
     double_quotes_only = r'^[^\"]*(\"[^\"]*\"[^\"]*)*(\")[^\"]*$'
     
     new_l_sent = []
-    # se tiver apenas uma sentença, nem olha dá um desprezo
+    # if has just one sentence, not even look it 
     if len(l_sent_tokenizeds) == 1: 
         
         new_l_sent = l_sent_tokenizeds
     else:
-        # se tiver mais de uma, aí tenta reconectar as sentenças
-        # de maneira a manter as aspas duplas na mesma sentença    
+        # if have two or more, try to reconect
+        # in a way that double aspersand will be together
         a,b = tee(l_sent_tokenizeds)
         next(b)
         pares = list(zip(a,b))
@@ -53,8 +64,6 @@ def sentence_tokenize(sentence_tokenizer, texto):
         if len(new_l_sent) < len(l_sent_tokenizeds):
             new_l_sent.append(s2)
 
-
-
     return [multi_replace(sentence, substituicoes_rev, ignore_case=True) for sentence in new_l_sent]
 
 
@@ -66,7 +75,8 @@ def multi_replace(string, replacements, ignore_case=False):
     :param str string: string to perform replacements on
     :param dict replacements: replacement dictionary {str_to_find: str_to_replace_with}
     :param bool ignore_case: whether to ignore case when looking for matches
-    :rtype: str the replaced string
+
+    :return Match list from compiled regex
     """
     if ignore_case:
         replacements = dict( ( pair[0].lower(), 
@@ -86,15 +96,41 @@ def multi_replace(string, replacements, ignore_case=False):
 
 
 def split_by_break(texto):
+    '''
+    Tokenize text by break lines
+
+    :param str texto: Text to be splitted
+
+    '''
     texto = re.sub(r'[“”]', '"', texto)
     return [sentenca.strip() for sentenca in texto.splitlines()]
 
 
 def startswith(quote_char, trecho, texto):
+    '''
+    Check if text starts with some quote and with a piece
+    of text
+
+    :param str quote_char: Quote to search
+    :param trecho: Start text to search
+    :param str texto: Text to search from
+
+    :return bool If text starts with quote_char+text string
+    '''
     return texto.startswith(quote_char + trecho)
 
 
 def sanitize_split(texto, quote_chars=None, trechos=None):
+    '''
+    Sanitize the split removing useless punctuation
+
+    :param str texto: Texto to sanitize
+    :param list quote_char: Quote to remove
+    :param list trechos: List of punctuations to remove
+
+    :return str Sanitized text
+
+    '''
     if quote_chars is None:
         quote_chars = ['"', '\'']
     if trechos is None:
@@ -126,8 +162,16 @@ def sanitize_split(texto, quote_chars=None, trechos=None):
 
 
 def split_by_sentence(texto, usar_ponto_virgula=False):
+    '''
+    Split a text by sentence
+
+    :param str texto: Text to split
+    :param bool usar_ponto_virgula: Use dot and comma punctuation to split
+
+    :return list List of all sentences 
+    '''
     if usar_ponto_virgula:
-        sentence_tokenizer = PunktSentenceTokenizer(punkt_param, lang_vars=JuridicoVars())
+        sentence_tokenizer = PunktSentenceTokenizer(punkt_param, lang_vars=PunctVars())
     else:
         sentence_tokenizer = PunktSentenceTokenizer(punkt_param)
     if type(texto) == str:

@@ -1,27 +1,25 @@
-
 from dependency import Dependency
 from itertools import permutations
 import helper_tools as htools
-# from tep2 import GrupoSinonimo
-# from infernal import openwordnetpt as own
 from collections import defaultdict
 import helper_palavras as h_pal
 
-# Lista das etiquetas dos tipos que irão compor
-# a lista de entidades do Foco Explícito
-# substantivos, pronomes, nomes próprios
+# List of tags of type to compound
+# the Explicit Focus entity set
+# If using other processor method include PROPN
 # FE_POS_TAGS = ["NOUN", "PRON", "PROPN"]
 FE_POS_TAGS = ["NOUN", "PRON"]
 
 class SingleSentence(object):
     """
     Class to store a sentence with linguistic annotations.
-
-    #__slots__ = ['id', 'text', 'annotated','tokens', 'dependencies', 'root',
-    #             'lower_content_tokens', 'named_entities', 'dbpedia_mentions_entries',
-    #             'dbpedia_mentions', 'acronyms', 'list_fe', 'list_fi',
-    #             'doc']
     """
+
+    __slots__ = ['id', 'text', 'annotated', 'palavras_sentence', 'tokens', 'dependencies', 'root',
+                 'lower_content_tokens', 'named_entities', 'dbpedia_mentions_entries',
+                 'dbpedia_mentions', 'tokens_dbpedia_metions', 'tokens_fe_pos_tags', 'acronyms', 
+                 'list_fe', 'list_fe_li', 'list_fi', 'doc', 'corref_chains']
+    
     def __init__(self, num, sentence_text, annotated_sentence=None, doc=None,
                  parser_output=None, palavras_sentence=None):
         """
@@ -60,22 +58,25 @@ class SingleSentence(object):
         self.__get_corref_chains()
 
     def __str__(self):
-        # return ' '.join(str(t) for t in self.tokens)
+        '''
+        String representation
+        '''
+        
         return self.text
 
     def __repr__(self):
+        '''
+        String representation
+        '''
         repr_str = str(self)
         return repr_str
 
     def __get_corref_chains(self):
+        '''
+        Get all correference chains in the sentence
+        '''
         s1_id = self.id+1
-        for id_cadeia, cadeia in self.doc.corref_chains.items():
-            '''
-            sents_in_cadeia = [sn['@sentenca'] for sn in cadeia['sn']
-                               if str(sn['@sentenca']) == str(s1_id)]
-            if len(sents_in_cadeia) > 0:
-                self.corref_chains.extend(id_cadeia)
-            '''
+        for id_cadeia, cadeia in self.doc.corref_chains.items():            
             if any(str(sn['@sentenca']) == str(s1_id) for sn in cadeia['sn']):
                 self.corref_chains.add(id_cadeia)
 
@@ -83,6 +84,11 @@ class SingleSentence(object):
         """
         Retrieve palavras' tags for a token on idx_token
         position
+
+        :param pal_token: VISL token from PALAVRAS
+        :param tags: specific tag to filter or all
+
+        :return List of VISL tokens with specific tags 
         """
 
         if tags == 'ALL':
@@ -94,6 +100,10 @@ class SingleSentence(object):
         """
         Retrieve palavras' tags for a token on idx_token
         position
+
+        :param idx_token: VISL id of token
+
+        :return List of VISL tokens position with specific tags 
         """
         l_tokens = [x[1] for x in list(filter(lambda item:
                                               item[1]['spa_start_idx'] == idx_token,
@@ -102,19 +112,15 @@ class SingleSentence(object):
         if tags == 'ALL':
             return [x[0] for y in l_tokens
                     for z in y['pal_tokens'] for x in z.tags]
-        else:
-            # return [x[0] for y in
-            #        self.aligned_tokens[idx_token]['pal_tokens'] for x in y.tags
-            #        if x[1] == tags]
-
+        else:            
             return [x[0] for y in l_tokens
                          for z in y['pal_tokens']
                          for x in z.tags if x[1] == tags]
 
     def __create_aligned_sentences(self):
         """
-        Create an structure with tokens annotared by palavras
-        and tokens annotated by spacy, aligned. 
+        Create an aligned structure with tokens annotared 
+        by palavras and tokens annotated by spacy
         """
         aligned_tokens = defaultdict()
         idx_token = 0
@@ -129,12 +135,12 @@ class SingleSentence(object):
         finalizado = False
         while not finalizado:
             try:
-                # pega o token do palavras
+                # get PALAVRAS token
                 t_pal = next(it_t_pal)
 
                 # tokens that has composition, stay together
                 # como em + as = nas, em + o = no
-                # O palavras trata cada um separadamente
+                # PALAVRAS use them separately
                 # Ex.: em 	[em] <cjt-head> <sam-> PRP @<ADVL  #8->1
                 #      as 	[o] <-sam> <artd> DET F P @>N  #9->10
                 if any("<sam->" in tag for tag, _ in t_pal.tags):
@@ -196,55 +202,6 @@ class SingleSentence(object):
 
         self.aligned_tokens = aligned_tokens
 
-        '''
-        for t_pal in self.palavras_sentence:   
-            
-            # tokens that has composition, stay together    
-            if any("<sam->" in tag for tag,_ in t_pal.tags):
-                pal_token_text += t_pal.text+" + " 
-                pal_tokens_list.append(t_pal)    
-                continue
-            else:
-                # first token from palavras
-                pal_token_text += t_pal.text
-                pal_tokens_list.append(t_pal)
-
-            # first token from spacy
-            token_spa = next(it_t_spa)
-            while h_pal.is_token_punct(token_spa.text):
-                token_spa = next(it_t_spa)
-            
-            if "=" in token_spa.text:
-                spa_token_text += token_spa.text            
-                spa_tokens_list.append(token_spa)                
-            else:
-                spa_token_text += token_spa.text            
-                spa_tokens_list.append(token_spa)
-
-            # tokens of proper names are grouped in palavras but,
-            # in spacy not
-            if " " in t_pal.text:
-                for _ in range(len(t_pal.text.split(' '))-1):
-                    token_spa = next(it_t_spa)
-                    spa_token_text += " "+token_spa.text
-                    spa_tokens_list.append(token_spa)
-
-            aligned_tokens[idx_token] = {'text': pal_token_text,
-                                         'pal_tokens': pal_tokens_list,
-                                         'spa_tokens': spa_tokens_list,
-                                         'pal_start_idx': pal_idx_token,
-                                         'spa_start_idx': spa_idx_token
-                                        }
-            idx_token += 1
-            pal_idx_token += len(pal_tokens_list)
-            spa_idx_token += len(spa_tokens_list)
-            pal_token_text = ""
-            spa_token_text = ""
-            pal_tokens_list = []
-            spa_tokens_list = []
-
-        self.aligned_tokens = aligned_tokens
-        '''
 
     def __create_fe(self):
         """
@@ -252,7 +209,6 @@ class SingleSentence(object):
         """
         # Append entities like nouns, proper nouns
         # and pronouns
-
         for token in self.annotated:
             if token.pos_ in FE_POS_TAGS:
                 # token_text = token.text.lower()
@@ -273,11 +229,9 @@ class SingleSentence(object):
             for t in self.annotated:
                 if t.idx == int(v['pos']):
                     offset = len(v['raw_text'].split())
-                    self.tokens_dbpedia_metions[
-                        # v['raw_text'].lower()] = self.annotated[t.i:t.i+offset]
+                    self.tokens_dbpedia_metions[                        
                         v['raw_text']] = self.annotated[t.i:t.i+offset]
-
-            # self.list_fe.append(v['raw_text'].lower())
+            
             self.list_fe.append(v['raw_text'])
 
         # Create the list as a set, excluding repetead elements
@@ -323,10 +277,7 @@ class SingleSentence(object):
             if lemma_fe_elem is None or\
                len(lemma_fe_elem.strip()) == 0:  # Não foi encontrado token equivalente
                 lemma_fe_elem = fe_elem
-
-            # fe_li_synms = fe_li_synms.union(own.find_synonyms(lemma_fe_elem))
-            # Do not use synsets here. When comparing semantic tags of elements
-            # of FE_LI we can will use the function are_synonyms.
+            
             fe_li_synms = set(htools.dic_tep2.get_sinonimos(lemma_fe_elem))
             
             if len(fe_li_synms) == 0:
@@ -336,10 +287,11 @@ class SingleSentence(object):
                 self.list_fe_li[lemma_fe_elem] = self.list_fe_li[lemma_fe_elem].union(fe_li_synms)
             else:
                 self.list_fe_li[lemma_fe_elem] = fe_li_synms
-            
-        # self.list_fe_li = list(fe_li_synms.union(set(self.list_fe)))
-
+        
     def show_list_fe(self):
+        '''
+        Display explicit focus list
+        '''
         for fe_elem in self.list_fe:
             print(fe_elem)
 
@@ -360,20 +312,15 @@ class SingleSentence(object):
                                                             tags='SEMANTIC')
                         if len(tags) > 0:
                             self.list_fi[spa_token.text] = tags
-        '''                    
-        for idx_token, token in enumerate(self.annotated):
-            if token.pos_ in FE_POS_TAGS:
-                tags = self.get_palavras_tags(idx_token, tags='SEMANTIC')
-                if len(tags) > 0:
-                    self.list_fi[token.text] = tags
-        '''
+        
 
     def __set_named_entities(self):
         """
         Set named entities of the sentence
         """
-        # TODO: Incluir entidades obtidas a partir da DBPedia
+        # TODO: include entities from DBPedia
         self.named_entities = []
+
         # each entity is a Span, a sequence of Spacy tokens
         self.named_entities.extend(self.annotated.ents)
 
@@ -400,11 +347,19 @@ class SingleSentence(object):
             self.dependencies.append(dep)
 
     def conll_representation(self):
+        '''
+        Get conll representation
+        Check: Code use from infernal code
+
+        :return Structure representation
+        '''
         return self.structure_representation()
 
     def structure_representation(self):
         """
         Return a CoNLL representation of the sentence's syntactic structure.
+
+        :return str Text of all lines concatenated with break line
         """
         lines = []
         for token in self.tokens:
@@ -424,58 +379,9 @@ class SingleSentence(object):
         Store the lower case content tokens (i.e., not in stopwords) for faster
         processing.
 
-        :param stopwords: set
+        :param set stopwords: set of stop words considered
         '''
         self.lower_content_tokens = [token.text.lower()
                                      for token in self.tokens
                                      if token.lemma not in stopwords]
 
-
-'''
-    def _read_conll_output(self, conll_output):
-        """
-        Internal function to load data in conll dependency parse syntax.
-        """
-        lines = conll_output.splitlines()
-        sentence_heads = []
-        
-        for line in lines:
-            fields = line.split()
-            if len(fields) == 0:
-                break
-
-            id_ = int(fields[ConllPos.id])
-            word = fields[ConllPos.word]
-            pos = fields[ConllPos.pos]
-            if pos == '_':
-                # some systems output the POS tag in the second column
-                pos = fields[ConllPos.pos2]
-
-            lemma = fields[ConllPos.lemma]
-            if lemma == '_':
-                lemma = lemmatization.get_lemma(word, pos)
-
-            head = int(fields[ConllPos.dep_head])
-            dep_rel = fields[ConllPos.dep_rel]
-            
-            # -1 because tokens are numbered from 1
-            head -= 1
-            
-            token = Token(id_, word, pos, lemma)
-            token.dependency_relation = dep_rel
-
-            self.tokens.append(token)
-            sentence_heads.append(head)
-            
-        # now, set the head of each token
-        for modifier_idx, head_idx in enumerate(sentence_heads):
-            # skip root because its head is -1
-            if head_idx < 0:
-                self.root = self.tokens[modifier_idx]
-                continue
-            
-            head = self.tokens[head_idx]
-            modifier = self.tokens[modifier_idx]
-            modifier.head = head
-            head.dependents.append(modifier)
-'''

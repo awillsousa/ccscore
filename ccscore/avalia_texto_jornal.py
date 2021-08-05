@@ -2,9 +2,7 @@
 def test_text_document(display=True):
     import helper_palavras as h_pal
     from text_document import TextDocument
-
-    #original_textfile = "./ccscore/data/texto_exemplo.txt"
-    #palavras_textfile = "./ccscore/data/texto_exemplo_anotado.html"
+    
     original_textfile = "./data/texto_exemplo.txt"
     palavras_textfile = "./data/texto_exemplo_anotado.html"
 
@@ -142,6 +140,13 @@ def display_text_original():
 
 
 def main():
+    #################################################################
+    # If you want to analyse just one aspect ou just one index
+    # uncomment the index that you need
+    # The calc_index_cohesion() return just the global and 
+    # unique value of the coesion index
+    #################################################################
+    #
     # display_text_original()
     # sentence_pair(test_text_document(display=False))
     # paragraph_pair(test_text_document(display=False), display_sentences=True)    

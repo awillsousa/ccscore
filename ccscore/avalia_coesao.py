@@ -4,10 +4,12 @@ from system import exit
 from cohesion_analyser import CohesionAnalyzer
 
 
-
 if __name__ == '__main__':
+    '''
+    Call this program to analyse just one essay file 
+    '''
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('input', help='Arquivo contendo texto a ser analisado')
+    parser.add_argument('input', help='Essay file that contains the text to be analysed')
     args = parser.parse_args()
 
     if path.isfile(args.input):
@@ -18,7 +20,7 @@ if __name__ == '__main__':
 
             texto = "\n".join(linhas_arq)
         except IOError:
-            print("Erro")
+            print(f"Error trying to open file {args.input}")
 
         # Call cohesion analyzer
         cohesion_analyzer = CohesionAnalyzer()
@@ -28,5 +30,5 @@ if __name__ == '__main__':
         cohesion_analyzer.results()
 
     else:
-        print("Caminho inválido para o arquivo de entrada")
+        print("Invalid path for input file")
         exit(0)

@@ -12,7 +12,8 @@ COGROO_DIR = getenv("COGROO_DIR")
 COGROO_SCRIPT = getenv("COGROO_SCRIPT")
 USE_CORREF = getenv("USE_CORREF")
 
-# Erros do CoGrOO relacionados a problemas de coerência lexical
+# Errors from CoGrOO grammatical revisor that are related with
+# lexical cohesion problems
 ERROS_COGROO_IAC = ['government:GOVERNMENT',
                     'probs:paronyms',
                     'xml:61',
@@ -22,7 +23,8 @@ ERROS_COGROO_IAC = ['government:GOVERNMENT',
                     'xml:73',
                     'xml:97']
 
-# Erros do CoGrOO relacionados a problemas de forma
+# Errors from GoGrOO grammatical revisor that are related with
+# form and structure problems
 ERROS_COGROO_IPR = ['xml:1', 'xml:2', 'xml:3', 'xml:4', 'xml:5',
                     'xml:6', 'xml:9', 'xml:10', 'xml:11', 'xml:12',
                     'xml:13', 'xml:14', 'xml:17', 'xml:21', 'xml:39',

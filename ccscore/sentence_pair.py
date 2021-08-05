@@ -28,15 +28,13 @@ class SentencePair(object):
         self.lexical_alignments = None
         self.entity_alignments = None
         self.ppdb_alignments = None
-        # self.annotated_s1 = None
-        # self.annotated_s2 = None
-
+        
         if isinstance(s1, SingleSentence):
             self.s1 = s1
         elif isinstance(s1, str) or s1 is None:
             self.s1 = SingleSentence(s1)
         else:
-            print("Tipo de objeto inválido passado para o construtor: {}".format(type(s1)))
+            print("Obejct type passed to constructor method is invalid: {}".format(type(s1)))
             raise(TypeError)
 
         if isinstance(s2, SingleSentence): 
@@ -45,7 +43,7 @@ class SentencePair(object):
             s2 is None:
             self.s2 = SingleSentence(s2)            
         else:
-            print("Tipo de objeto inválido passado para o construtor: {}".format(type(s2)))
+            print("Obejct type passed to constructor method is invalid: {}".format(type(s2)))
             raise(TypeError)
 
         if similarity is not None:
@@ -78,8 +76,7 @@ class SentencePair(object):
         Get the intersection of explicit focus list
         of the pairs' sentences
         """
-
-        #from_li_le = {}
+        
         from_li_le = set([])
 
         for elem_s1 in self.s1.list_fe:
@@ -144,8 +141,8 @@ class SentencePair(object):
         fi1_NC_fi2 = not(fi1_C_fi2)
         fe1_C_fe2 = len(self.fe_intersection) > 0
 
-        # Considera as cadeias de correferência para o 
-        # calculo das intereseções do FE
+        # Must consider the correference chains 
+        # for FE intersection calculation?
         if config.USE_CORREF:
             if not(fe1_C_fe2):
                 fe1_C_fe2 = len(self.common_corref_chains) > 0

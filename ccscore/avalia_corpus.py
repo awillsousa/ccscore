@@ -62,18 +62,20 @@ import confapp as config
 import helper_palavras as h_pal 
 from text_document import TextDocument
 
-def main():            
+def main():
+    '''
+    This call is to analyse all the entire main corpus prepared 
+    with annotations and external data. 
+    '''            
+
     PATH_CORPUS = "./ccscore/data/Corpus_Redacoes.pickle"
 
-    # Carrega a base de redações
+    # Load essays dataset
     df_redacao = pickle.load(open(PATH_CORPUS, 'rb'))
     valores_coesao = {}
     erros = []
-    for i, redacao in df_redacao.iterrows():
-        #if i > 100:        
-        #   break
-
-        texto_orig = str(redacao['Texto']).replace(u"\u2060","")
+    for i, redacao in df_redacao.iterrows():        
+        texto_orig = str(redacao['Texto']).replace(u"\u2060", "")
         texto_pal = redacao['Palavras']
         nota_compt4 = redacao['Competência 4']
         cadeias_corref = redacao['Cadeias']
@@ -85,12 +87,12 @@ def main():
             valores_coesao[i] = valor_nota
         except Exception as e:
             erros.append((i, str(e)))
-            
+
     print(f"Erros: {str(erros)} Total: {len(erros)}")
     resultados = {"erros": erros,
                   "valores_coesao": valores_coesao}
 
     pickle.dump(resultados, open('./ccscore/data/resultados_exp_1_1.pickle', 'wb'))
-    
+
 if __name__ == '__main__':
     main()

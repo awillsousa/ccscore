@@ -4,13 +4,13 @@ from infernal import feature_extraction as fe
 try:
     nlp_process = spacy.load("pt_core_news_lg")
 except:
-    print("Erro ao carregar modelo spacy")
+    print("Error loading spacy models")
 
 
-# 
+
 class CohesionAnalyzer(object):
     """
-    Class execute cohesion analyzer
+    Class that execute cohesion analyzer
     """
 
     def __init__(self, doc):
@@ -24,24 +24,43 @@ class CohesionAnalyzer(object):
 
 
     def preprocess_nlp(self):
+        '''
+        Get the annotated the POS tags
+        '''
         proc_doc = anotate_pos(self.textdoc)        
 
-        # Ajusta segmentação de asspas duplas
+        
 
 
     def anotate_pos(self, doc):
+        '''
+        Annotate a doc with the POS tags
+
+        :param DocumentText doc: Document to annotate
+
+        :return Annotated text 
+        '''
         return nlp_process(self.textdoc)            
 
 
     def analyze(self):
+        '''
+        Analyze all parts of text using the pipiline of functions
+        '''
         self.results =  [ f(self.textdoc) for f in self.funcoes_pipeline ]
 
 
     def analyze_local_cohesion(self):
+        '''
+        Not implement yet.
+        '''
         pass
 
 
     def analyze_global_cohesion(self):
+        '''
+        Not implement yet.
+        '''
         pass
 
     

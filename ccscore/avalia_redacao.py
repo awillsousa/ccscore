@@ -123,7 +123,7 @@ def display_text_original():
         with open(original_textfile, 'r') as f_text:
             orig_text = f_text.readlines()
     except IOError:
-        print(f"Erro ao tentar abrir o arquivo {original_textfile}")
+        print(f"Erro trying to open file {original_textfile}")
 
     for s in orig_text:
         print(s.replace('\n', ''))
@@ -136,7 +136,7 @@ def main(num_redacao):
         df_redacao = pickle.load(open(PATH_CORPUS, 'rb'))
         redacao = df_redacao.iloc[num_redacao]
     except IOError:
-        print("Erro ao carregar arquivo")
+        print("Error loading file")
     except Exception as e:
         print(f"Erro: {str(e)}")
     finally:
@@ -149,11 +149,6 @@ def main(num_redacao):
     tp = h_pal.parse_text_toclass(texto_pal, texto_orig)
     td = TextDocument(texto_orig, tp, corref_chains=cadeias_corref)
 
-    # display_text_original()
-    # sentence_pair(test_text_document(display=False))
-    # paragraph_pair(test_text_document(display=False), display_sentences=True)    
-    # calc_local_cohesion(test_text_document(display=False))
-    # calc_global_cohesion(test_text_document(display=False))
     calc_index_cohesion(test_text_document(td, tp, display=True))
 
 

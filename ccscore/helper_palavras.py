@@ -20,7 +20,10 @@ class TypeTagset(Enum):
     ALL = 'ALL'
 
 
-class TokenVISL(object):    
+class TokenVISL(object):  
+    '''
+    Class representing VISL token
+    '''
     def __init__(self, pos, text, lemma, tags, ref=None):
         self.pos = pos
         self.text = text
@@ -35,12 +38,18 @@ class TokenVISL(object):
         return f"{self.text}"
 
     def get_tags(self, type_tag=TypeTagset.ALL):
+        '''
+        Get all of the specific tags
+        '''
         if type_tag == TypeTagset.ALL:
             return self.tags
         else:
             return [x for x in self.tags if x[1] == type_tag]
 
 class SentenceVISL(object):
+    '''
+    Class representing VISL sentence
+    '''
     def __init__(self, pos, tokens, text):
         self._index = 0
         self.pos = pos
@@ -54,7 +63,7 @@ class SentenceVISL(object):
         if n < len(self.tokens):
             return self.tokens[n]
         else:
-            raise IndexError("Indice de token fora do intervalo.")
+            raise IndexError("Token index out of the interval.")
 
     def __iter__(self):
         self._index = 0
@@ -70,6 +79,9 @@ class SentenceVISL(object):
 
 
 class DocVISL(object):
+    '''
+    Class representing VISL text document
+    '''
     def __init__(self, sentences):
         self._index = 0
         self.sentences = sentences
@@ -92,6 +104,10 @@ class DocVISL(object):
 def is_umbrella(tag):
     """
     Return true if 'tag' is an semantic umbrella tag
+
+    :param str tag: Tag to search
+
+    :return bool Is this tag umbrella or not
     """
 
     if tag in SEMANTIC_TAGSET.keys():
@@ -104,6 +120,10 @@ def identify_tag(tag):
     '''
     Help to identify the tag passed using dictionaries based on
     PALAVRAS rules    
+
+    :param str tag: Tag to identify class
+
+    :return str Tag set id or UNKNOWN
     '''
     TAGSETS = [WORD_CLASS_TAGSET, WORD_SUBCLASS_TAGSET, INFLEXION_TAGSET, 
                SYNTATIC_TAGSET, TEXT_METAINFO_TAGSET, SEMANTIC_TAGSET, 
@@ -133,6 +153,11 @@ def process_line(linha):
     '''
     Receive one line of text with PALAVRAS
     tags and convert to a tuple
+
+    :param str linha: Line of text with PALAVRAS tags and marks
+
+    :return tuple with original text, lemmatized, tags and references
+
     t = (token, original_token_form, [tags of token], reference)
     token - it's the word exact like in text, except for words
             like "do" that are preposition+article and are split up
@@ -168,20 +193,25 @@ def parse_file_toclass(filepath, original_text):
     '''
     Parse line by line a file with PALAVRAS
     tags, stored with html tags
+
+    :param str filepath: Path of file to parse
+    :param str original_text: Text original raw file
+
+    :return DocVISL Instance
     '''
     orig_sentences = []
     try:
         with open(original_text, 'r') as f_text:
             orig_sentences = su.split_by_sentence("\n".join(f_text.readlines()))
     except IOError:
-        print(f"Erro ao tentar abrir o arquivo {original_text}")
+        print(f"Error trying to open file {original_text}")
 
     html_lines = []
     try:
         with open(filepath, 'r') as f_html:
             html_lines = f_html.readlines()
     except IOError:
-        print(f"Erro ao tentar abrir o arquivo {filepath}.")
+        print(f"Error trying to open file  {filepath}.")
         
     str_lines = " ".join(html_lines)
     dt_lines = str_lines.split('<br><dt>')
@@ -217,14 +247,19 @@ def parse_file_toclass(filepath, original_text):
 def has_mark_end(linha, _MARKS_END_SENTENCE):
     t0 = linha.split(' ')[0] 
     return (t0 in _MARKS_END_SENTENCE)
-        
+
 
 def parse_text_toclass(palavras_text, original_text):
     '''
     Parse line by line a file with PALAVRAS
     tags, stored with tags in text format
-    '''   
-    
+
+    :param str palavras_text: Text with PALAVRAS annotation
+    :param str original_text: Original raw text
+
+    :return DocVISL Instance
+    '''
+
     _MARK_END_SENTENCE = "$."
     _MARKS_END_SENTENCE = ["$.", "$?"]
     _MARK_WRONG_DQ = "$\""
@@ -242,35 +277,31 @@ def parse_text_toclass(palavras_text, original_text):
 
     for linha in dt_lines:
         if find_mark_end: 
-            if len(linha) == 0: # linha com apenas um \n
+            if len(linha) == 0: # one line that has just one \n
                 is_end_of_sentence = True
-            elif has_mark_end(linha, [_MARK_WRONG_DQ]): # $. seguido de $"
+            elif has_mark_end(linha, [_MARK_WRONG_DQ]): # $. followed by $"
                 continue
             else:
                 find_mark_end = False
         elif has_mark_end(linha, _MARKS_END_SENTENCE):
             find_mark_end = True
-        
-        #if _MARK_END_SENTENCE in linha:
-        #    if any(x in linha for x in PUNCT_CONTIN):
-        #        continue
+
         if is_end_of_sentence:
-            if len(sentence_tokens) > 0:
-                #idx_sentence = count_sentences
+            if len(sentence_tokens) > 0:                
                 text_sentences.append(SentenceVISL(idx_sentence,
                                                    sentence_tokens,
                                                    orig_sentences[idx_sentence]))
                 idx_sentence += 1
                 count_tokens = 1
                 sentence_tokens = []
-            
+
             is_end_of_sentence = False
         elif "[" in linha:
             sentence_tokens.append(TokenVISL(count_tokens, *process_line(linha)))
             count_tokens += 1
 
-    # Algumas vezes o último token, não é seguido de um \n
-    # ou é seguido por um $"
+    # Sometimes the last token, doesn't have a \n
+    # or doesn't have a $" in the sequence 
     if len(sentence_tokens) > 0:                
         text_sentences.append(SentenceVISL(idx_sentence,
                                             sentence_tokens,
@@ -283,6 +314,10 @@ def parse_file(filepath):
     '''
     Parse line by line a file with PALAVRAS
     tags, stored with html tags
+
+    :param str filepath: Path of file to be parsed
+
+    :return list List of sentences
     '''
     html_lines = []
     try:
@@ -322,6 +357,11 @@ def parse_html(text, tag_split='<br><dt>'):
     '''
     text it's a html text with tags and some marks, 
     result of PALAVRAS parsing process
+
+    :param str text: HTML text to be parsed
+    :param str tag_split: HTML tags used to split. Optional (default='<br><dt>')
+
+    :return list List of sentences
     '''
     
     dt_lines = text.split(tag_split)
@@ -354,6 +394,10 @@ def parse_text(text):
     '''
     text it's a text with tags and some marks, 
     result of PALAVRAS parsing process
+
+    :param str text: Text to be parsed
+
+    :return list List of sentences 
     '''
     _MARK_END_SENTENCE = "$."
 
@@ -384,6 +428,9 @@ def parse_text(text):
 def parse_PALAVRAS(text, output=None):
     '''
     Execute a request to VISL site, for parsing some piece of text
+
+    :param str text: Text to be parsed
+    :param str output: File path to store results. Optional (default=None)
     '''
     parsed_text = None
     resp = None
@@ -441,6 +488,9 @@ def parse_PALAVRAS(text, output=None):
     
 
 def test_parse_PALAVRAS():
+    '''
+    Test PALAVRAS parser call
+    '''
     text_to_parse="O ser humano constrói seu caráter em sociedade. Primeiro no lar, na família e depois na Igreja ou qualquer outra instituição."
     r_parsed = parse_PALAVRAS(text_to_parse)
     s_parsed = BeautifulSoup(r_parsed)
@@ -448,6 +498,9 @@ def test_parse_PALAVRAS():
     print(parse_text(s_parsed.text))
 
 def show_annotated_example():
+    '''
+    Display an example of text with PALAVRAS tags
+    '''
     text_annotated = """o [o] <*> <artd> DET M S @>N
     ser humano [ser=humano] <H> N M S @SUBJ>
     constrói [construir] <fmc> <vt> V PR 3S IND VFIN @FMV

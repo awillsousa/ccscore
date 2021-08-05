@@ -7,7 +7,7 @@ class SingleParagraph(object):
     """
     Class to store a paragraph
     """
-    # __slots__ = ['id', 'text', 'sentences', 'list_fe', 'list_fi', 'doc']
+    __slots__ = ['id', 'text', 'sentences_id', 'list_fe', 'list_fi', 'corref_chains', 'doc']
 
     def __init__(self, num, paragraph_text, sentences_id=[], doc=None):
         """
@@ -15,7 +15,10 @@ class SingleParagraph(object):
         It checks for the tokens themselves, pos tags, lemmas
         and dependency annotations.
 
-        :param parser_output: if None, an empty Sentence object is created.
+        :param num: id of the paragraph
+        :param paragraph_text: text of paragraph without sentence separation
+        :param sentences_id: list of all sentences inside the paragraph
+        :param doc: reference of document that contains the paragraph        
         """
         self.id = num
         self.text = paragraph_text
@@ -30,14 +33,25 @@ class SingleParagraph(object):
         self.__get_corref_chains()
 
     def __str__(self):
-        # return ' '.join(str(t) for t in self.tokens)
+        '''
+        String representantion of the class
+        '''
+        
         return self.text
 
     def __repr__(self):
+        '''
+        String representantion of the class
+        '''
         repr_str = str(self)
         return repr_str
 
     def get_sentences(self):
+        '''
+        Get a list of all sentence ids
+
+        :return List with sentences id
+        '''
         return [s for s in self.doc.sentences if s.id in self.sentences_id]
 
     def __create_fe(self):
@@ -51,7 +65,7 @@ class SingleParagraph(object):
                     ..., INTERSECTION(sN-1.fe,sN.fe)
                   )
         """
-        # sents = [s for s in self.doc.sentences if s.id in self.sentences_id]
+        
         sents = self.get_sentences()
         fe_pairs = []
         if len(sents) > 1:
@@ -79,7 +93,7 @@ class SingleParagraph(object):
                     ..., INTERSECTION(sN-1.fi,sN.fi)
                   )
         """
-        # sents = [s for s in self.doc.sentences if s.id in self.sentences_id]
+        
         sents = self.get_sentences()
         fi_pairs = []
         if len(sents) > 1:

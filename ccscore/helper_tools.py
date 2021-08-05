@@ -15,7 +15,7 @@ from time import sleep
 URL_REST_DBPEDIA = "http://{}:{}/rest/annotate".format(config.DBPEDIA_IP,
                                                        config.DBPEDIA_PORT)
 
-
+# Load TeP2 structure created
 dic_tep2 = None
 with open(config.TEP2_PATH, 'rb') as f:
     dic_tep2 = pickle.load(f)
@@ -24,12 +24,14 @@ with open(config.TEP2_PATH, 'rb') as f:
 def get_dbpedia_entries(text, formated=True, 
                         url=URL_REST_DBPEDIA,
                         confidence=0.35,
-                        policy='blacklist'):
+                        policy='blacklist'):                        
     """
     Get entities mentions by calling a DBpedia Spotlight REST API
 
     :param text: Text to be analyzed
     :param url: endpoint to annotate text
+
+    :return json Formated json with entity mentions
     """
 
     # params to rest call 
@@ -52,6 +54,8 @@ def format_dbpedia_result(result):
     into a dictionary
 
     :param result: json result of a request call 
+
+    :return dict Dictionary with resource data or empty dict
     """    
     if 'Resources' in result.keys():
         return  {ent['@surfaceForm'].replace("'",'') : {'URI': ent['@URI'], 
@@ -65,6 +69,13 @@ def format_dbpedia_result(result):
 
 
 def get_categorias_dbpedia(resource):
+    """
+    Get categories from DBpedia Spotlight
+
+    :param str resource: Resource to find
+
+    :return list List of categories related with resource
+    """
     page = requests.get("http://pt.dbpedia.org/resource/{}".format(resource))
     soup = BeautifulSoup(page.text, 'html.parser')
     a_elements = soup.find_all('a', text=re.compile(".*Categoria.*"))
@@ -80,6 +91,9 @@ def get_categorias_dbpedia(resource):
 
 
 def is_dbpedia_running():
+    '''
+    Check if DBPedia Spotlight container is running
+    '''
     try:
         _ = get_dbpedia_entries("Thanks to DBpedia Spotlight developers!")
     except Exception:
@@ -89,25 +103,39 @@ def is_dbpedia_running():
 
 
 def run_dbpedia_script():
+    '''
+    Execute a DBPedia Spotlight script in container
+    '''
     cmd = [config.DBPEDIA_SCRIPT]
     subprocess.Popen(cmd).wait()    
 
 
 def cogroo_analyze(sentence):
+    '''
+    Check if CoGrOO analyzer service is up
+    '''
     try:
         cogroo = Cogroo.Instance()
     except Exception as ex:
-        print("Falha ao tentar acessar o servidor CoGroo.")
+        print("Error trying to communicate with CoGroo server.")
         print(ex)
     return cogroo.analyze(sentence)
 
 
 def cogroo_lemmatize(sentence):
+    '''
+    Lemmatize a sentence with CoGrOO
+
+    :param SingleSentence sentence: Sentence to lemmatize
+    '''
     cogroo = Cogroo.Instance()
     return cogroo.lemmatize(sentence)
 
 
 def is_cogroo_running():
+    '''
+    Check if CoGrOO analyzer service is running
+    '''
     try:
         cogroo = Cogroo.Instance()
         _ = cogroo.analyze("Thanks to GoGrOO developers!")
@@ -117,10 +145,21 @@ def is_cogroo_running():
     return (True, "Cogroo started!")
 
 def run_cogroo_script():
+    '''
+    Execute a CoGrOO script
+    '''
     cmd = [config.COGROO_SCRIPT, config.COGROO_DIR]
     subprocess.Popen(cmd).wait()
 
 def longest_common_substr(arr):
+    '''
+    Get the longest common substring between all strings
+    from one array
+
+    :param list arr: List of strings
+
+    :return str Common longest substring
+    '''
 
     # Determine size of the array
     n = len(arr)
@@ -157,23 +196,25 @@ def longest_common_substr(arr):
 
 def pairwise(iterable):
     '''
-    Receive an iterable and return
-    an list with tuples of this elements
-    is this way
-    s -> (s0,s1), (s1,s2), (s2, s3), ...
+    Receive an iterable and return an list with tuples of this elements
+
+    Example:    s -> (s0,s1), (s1,s2), (s2, s3), ...
     '''
     a, b = tee(iterable)    
-    next(b, None)  # next(b) it's Ok to
+    next(b, None)  # next(b) it's Ok too
     return zip(a, b)
 
 
-# Verificacao de requerimentos para a execução
+# Check requirements for execution
 CHECK_FUNCTIONS = [is_cogroo_running, 
                    is_dbpedia_running]
 RUN_FUNCTIONS = [run_cogroo_script,
                  run_dbpedia_script]
 
 def check_requirements():
+    '''
+    Check all requirements for the execution
+    '''
     for i, f in enumerate(CHECK_FUNCTIONS):
         ok_func, msg = f()
         if not ok_func:

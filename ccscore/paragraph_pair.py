@@ -1,6 +1,4 @@
 from single_paragraph import SingleParagraph
-# import helper_tools as htools
-# from itertools import product
 import confapp as config
 
 class ParagraphPair(object):
@@ -200,6 +198,7 @@ class ParagraphPair(object):
 
         :param tokens: list of datastructures.Token objects
         :param tags: optional set of allowed tags
+        
         :return: list of the tokens having the allowed tokens
         """
         if tags is None:

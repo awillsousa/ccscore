@@ -8,6 +8,14 @@ from datetime import date
 
 
 def plot_coesao_local(td, save=False):
+    '''
+    Plot local cohesion values for one TextDocument instance analyzed.
+
+    The plot show all sentence pairs relations
+    
+    :param TextDocument td: TextDocument instance
+    :param bool save: Store plot into file. Optional (default=False)
+    '''
 
     fig, ax = plt.subplots()    
     y = td.local_cohesion_values
@@ -50,8 +58,7 @@ def plot_coesao_local(td, save=False):
             verticalalignment='top', bbox=props)
 
     # Linhas verticais de separação dos parágrafos
-    xcoords = [s+1 for p in td.paragraphs for i,s in enumerate(p.sentences_id) if i == (len(p.sentences_id)-1)]
-    #xcoords[-1] = xcoords[-1]-1
+    xcoords = [s+1 for p in td.paragraphs for i,s in enumerate(p.sentences_id) if i == (len(p.sentences_id)-1)]    
     xcoords = xcoords[:-1]
     for xc in xcoords:
         plt.axvline(x=xc, color='red', ls=':', lw=2)
@@ -62,7 +69,14 @@ def plot_coesao_local(td, save=False):
         plt.savefig(f"./ccscore/data/coesao_local_{today.strftime('%d_%m_%Y')}.png")
 
 def plot_coesao_global(td, save=False): 
+    '''
+    Plot global cohesion values for one TextDocument instance analyzed
 
+    The plot show all paragraphs pairs relations
+
+    :param TextDocument td: TextDocument instance
+    :param bool save: Store plot into file. Optional (default=False)
+    '''
     fig, ax = plt.subplots()    
     y = td.global_cohesion_values
     x = [a+1 for a in list(range(len(td.global_cohesion_values)))]
@@ -95,7 +109,7 @@ def plot_coesao_global(td, save=False):
     ids_p = [p.id for p in td.paragraphs]
     l_div = [sum(l_interv[0:x:1]) for x in range(0,len(l_interv))]
     xcoords = l_div[1:]    
-    #xcoords[-1] = xcoords[-1]-1
+    
     for xc in xcoords:
         plt.axvline(x=xc, color='blue', ls='--', lw=2)
 
@@ -105,11 +119,16 @@ def plot_coesao_global(td, save=False):
         plt.savefig(f"./ccscore/data/coesao_local_{today.strftime('%d_%m_%Y')}.png")
 
 def get_ppair_values(td):
+    '''
+    Get paragraph pairs to help the ploting
+
+    :param TextDocument td: TextDocument instance
+
+    :return list List of paragraphs pairs
+    '''
     l_id_p = [a for a in list(range(len(td.paragraphs)))]
-    l_prods = [(a,b) for a,b in list(product(l_id_p,l_id_p)) if a != b]
-    #print(f"l_prods: {str(l_prods)}")
-    l_combs = list(combinations(l_id_p, 2))
-    #print(f"l_combs: {str(l_combs)}")
+    l_prods = [(a,b) for a,b in list(product(l_id_p,l_id_p)) if a != b]    
+    l_combs = list(combinations(l_id_p, 2))    
     l_values = td.global_cohesion_values
     x = [a+1 for a in list(range(len(td.global_cohesion_values)))]
     l_valores = list(zip(x,y))
@@ -128,10 +147,26 @@ def get_ppair_values(td):
     return l_prods,l_prod_values
 
 def grouper(n, iterable, padvalue=None):
-    "grouper(3, 'abcdefg', 'x') --> ('a','b','c'), ('d','e','f'), ('g','x','x')"
+    '''
+    Help to create groups of instances (maybe paragraphs or sentences) and fill the
+    empty slots in last group if exists any
+
+    :param iter iterable: Iterable to create groups
+    :param padvalue: Value to pad in last group, if necessary
+
+    :return Iterable of a list of tuples with groups
+    Example: "grouper(3, 'abcdefg', 'x') --> ('a','b','c'), ('d','e','f'), ('g','x','x')"
+    '''
+    
     return zip_longest(*[iter(iterable)]*n, fillvalue=padvalue)
 
 def plot_coesao_global_detail(td, save=False): 
+    '''
+    Plot global cohesion - detailed version
+
+    :param TextDocument td: TextDocument instance to plot
+    :save bool save: Store in file. Optional (default=False)
+    '''
 
     l_prods, l_prod_values = get_ppair_values(td)
 

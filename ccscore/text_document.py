@@ -12,11 +12,12 @@ from os import system
 class TextDocument(object):
     """
     Class to store a text document
+    
+    :param str text: Text of the document
+    :param VISLDoc doc_palavras: VISL Document. Optional (default=None)
+    :param dict corref_chains: Dictionary with correference chains. Optional (default=None)
     """
-    def __init__(self, text, doc_palavras=None, corref_chains=None):
-        """
-        :param text: Text of the document.
-        """
+    def __init__(self, text, doc_palavras=None, corref_chains=None):        
         self.text = text
         self.doc_palavras = doc_palavras
         self.nlp_processor = None
@@ -40,7 +41,7 @@ class TextDocument(object):
         else:
             self.corref_chains = corref_chains
 
-        #requirements_ok, msg = htools.check_requirements()
+        requirements_ok, msg = htools.check_requirements()
         requirements_ok = True
         if not requirements_ok:
             print(msg)
@@ -49,6 +50,9 @@ class TextDocument(object):
         self.__init_document()
 
     def __init_document(self):
+        '''
+        Initialize the document object
+        '''
         try:
             if not self.is_initilized:
                 if self.nlp_processor is None:
@@ -66,6 +70,9 @@ class TextDocument(object):
             self.is_initilized = False
 
     def set_nlp_processor(self):
+        '''
+        Set the nlp processor to use
+        '''
         model = load('pt_core_news_lg')
         self.nlp_processor = model
 
@@ -116,17 +123,20 @@ class TextDocument(object):
         """
         Get the correference chains of text
         """
-
         # This way of load the corref chains must be 
-        # change in the future
+        # changed in the future
         pass
 
-        
-
     def __str__(self):
+        '''
+        String representation
+        '''
         return self.text
 
     def __repr__(self):
+        '''
+        String representation
+        '''
         repr_str = str(self)
         return repr_str
 
@@ -140,12 +150,11 @@ class TextDocument(object):
             local_cohesion_values.append(pair.calc_local_cohesion())
         self.local_cohesion_values = local_cohesion_values
         self.local_cohesion = sum(local_cohesion_values)
-
-        # return self.local_cohesion
+       
     
     def __calc_global_cohesion(self):
         """
-        Calculate the global cohesion value
+        Calculate the global cohesion values
         """
         global_cohesion_values = []
         for p1, p2 in combinations(self.paragraphs, 2):
@@ -158,6 +167,9 @@ class TextDocument(object):
         # return self.global_cohesion
 
     def __calc_index_cohesion(self):
+        '''
+        Calculate the index cohesion
+        '''
         ic = 0
         ic = self.local_cohesion / (len(self.sentences)-1)
         ic += self.global_cohesion / sum(range(len(self.paragraphs)-1))
@@ -166,10 +178,19 @@ class TextDocument(object):
         self.index_cohesion = ic
 
     def get_sum_local_cohesion(self):
+        '''
+        Get the sum of local cohesion values
+        '''
         return self.local_cohesion
 
     def get_sum_global_cohesion(self):
+        '''
+        Get the sum of global cohesion values
+        '''
         return self.global_cohesion
 
     def get_index_cohesion(self):
+        '''
+        Get index cohesion
+        '''
         return self.index_cohesion
